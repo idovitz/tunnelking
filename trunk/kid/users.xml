@@ -1,0 +1,41 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/
+TR/html4/strict.dtd">
+<html py:layout="'layout.xml'" xmlns:py="http://purl.org/kid/ns#">
+	<div py:match="item.tag == 'content'" id="contentDiv">
+		<script type="text/javascript" src="js/user.js" />
+		<script type="text/javascript">
+			function initPage(){
+				getUsers();
+			}
+		</script>
+		<div id="searchBar">
+			<input type="submit" value="add user" onclick="displayAddUserDiv();" />
+		</div>
+		<div id="addDiv">
+			<b>Add User</b>
+			<form id="addForm">
+				<table>
+					<tr>
+						<td>username</td>
+						<td><input type="text" id="userAddName" /></td>
+					</tr>
+					<tr>
+						<td>pincode</td>
+						<td><input type="password" id="userAddPass" /></td>
+					</tr>
+					<tr>
+						<td></td>
+						<td><input type="password" id="userAddPass2" /></td>
+					</tr>
+					<tr>
+						<td></td>
+						<td style="text-align: right;"><button type="button" onclick="addUser();">save</button></td>
+					</tr>
+				</table>
+			</form>
+		</div>
+		<div id="userDiv">
+			
+		</div>
+	</div>
+</html>
