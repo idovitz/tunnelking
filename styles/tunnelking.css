@@ -1,0 +1,107 @@
+#mainDiv {
+	font-family: sans-serif;
+	font-size: 12px;
+	width: 1004px;
+}
+
+#headerDiv {
+	border: 1px solid #9c0008;
+	height: 70px;
+	background-image: url("/img/tunnelking.png");
+}
+
+#menuDiv {
+	float: left;
+	border: 1px solid #CCCCCC;
+	width: 180px;
+	height: 420px;
+	padding: 10px 10px 10px 10px;
+}
+
+#contentDiv {
+	float: right;
+	border: 1px solid #CCCCCC;
+	width: 780px;
+	height: 420px;
+	padding: 10px 10px 10px 10px;
+}
+
+#footerDiv {
+	border: 1px solid #CCCCCC;
+	clear: both;
+	padding: 2px 2px 2px 2px;
+}
+
+#logoDiv {
+	position: relative;
+	margin: 10px 0px 0px 10px;
+	width: 40px;
+	top: 0px;
+	left: 0px;
+}
+
+#selectDiv {
+	position: absolute;
+	top: 45px;
+	left: 886px;
+}
+
+img {
+	border: 0px;
+}
+
+button {
+	/* border: 1px solid blue; */
+	font-size: 9px;
+	padding: 1px;
+}
+
+#searchBar {
+	border: 1px solid #999999;
+	margin: 0px 0px 1px 0px;
+	padding: 0px;
+}
+
+#addDiv {
+	width: 270px;
+	height: 386px;
+	border: 1px solid #999999;
+	float: left;
+	display: none;
+	margin: 0px;
+	padding: 2px;
+}
+
+#userDiv {
+	overflow: auto;
+	height: 390px;
+	border: 1px solid #999999;
+	margin: 0px;
+}
+
+.userNameDiv {
+	padding: 5px 10px 5px 10px;
+	margin: 1px;
+	border: 1px solid #999999;
+	width: 754px;
+}
+
+.userControlDiv {
+	float: right;
+	margin: -4px 0px 0px 0px;
+	padding: 0px;
+}
+
+#runningDiv{
+	float: left;
+	padding: 10px 10px 10px 10px;
+	border: 1px solid grey;
+	margin: 4px;
+}
+
+#basicConfDiv{
+	float: left;
+	padding: 10px 10px 10px 10px;
+	border: 1px solid grey;
+	margin: 4px;
+}

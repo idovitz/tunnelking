@@ -1,0 +1,43 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/
+TR/html4/strict.dtd">
+<html py:layout="'layout.xml'" xmlns:py="http://purl.org/kid/ns#">
+	<div py:match="item.tag == 'content'" id="contentDiv">
+		<div id="newConf">
+			<h3>new configuration</h3>
+			<table>
+				<tr>
+					<td>configuration name</td>
+					<td><input id="form_configname" type="text" maxchars="10" /></td>
+				</tr>
+				<tr>
+					<td>domain (ex: domain.com)</td>
+					<td><input id="form_domain" type="text" /></td>
+				</tr>
+				<tr>
+					<td>organisation name</td>
+					<td><input id="form_o" type="text" /></td>
+				</tr>
+				<tr>
+					<td>department name</td>
+					<td><input id="form_ou" type="text" /></td>
+				</tr>
+				<tr>
+					<td>country</td>
+					<td><input id="form_c" type="text" /></td>
+				</tr>
+				<tr>
+					<td>state/province</td>
+					<td><input id="form_st" type="text" /></td>
+				</tr>
+				<tr>
+					<td>locality</td>
+					<td><input id="form_l" type="text" /></td>
+				</tr>
+				<tr>
+					<td></td>
+					<td style="text-align: right;"><input type="submit" value="generate config" onclick="newConfig();" /></td>
+				</tr>
+			</table>
+		</div>
+	</div>
+</html>
