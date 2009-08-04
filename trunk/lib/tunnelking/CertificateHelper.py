@@ -32,14 +32,18 @@ class CertificateHelper:
 	
 	def writeTmp(self):
 		for cn,key in self.keys.iteritems():
-			f = open("tmp/%s.key" % cn, "w")
-			f.write(key.toPEM_PrivateKey())
+			print cn
+			if "server" in cn:
+				f = open("ssl/keys/%s.key" % cn, "w")
+				f.write(key.toPEM_PrivateKey())
 		for cn,cert in self.certs.iteritems():
-			f = open("tmp/%s.cert" % cn, "w")
-			f.write(cert.toPEM())
+			print cn
+			if "server" in cn:
+				f = open("ssl/certs/%s.cert" % cn, "w")
+				f.write(cert.toPEM())
 		
 		cn = self.caCert.getIssuer().lookupEntry("commonName")
-		f = open("tmp/%s.cert" % cn, "w")
+		f = open("ssl/certs/%s.cert" % cn, "w")
 		f.write(self.caCert.toPEM())
 		
 	def createCA(self, cn, o, ou, c, st, l):
@@ -127,5 +131,5 @@ class CertificateHelper:
 		self.db.execSQL("DELETE FROM `ssl` WHERE cn = '%s' AND confid = %s" % (cn, self.confid))
 		
 	def getUserKey(self, cn, pin):
-		print self.keys[cn].toPEM_PrivateKey(pin)
-		print self.certs[cn].toPEM()
+		
+		return {'%s.key' % cn:self.keys[cn].toPEM_PrivateKey(pin), '%s.cert' % cn: self.certs[cn].toPEM()}

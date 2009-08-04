@@ -29,7 +29,10 @@ TR/html4/strict.dtd">
 					</tr>
 					<tr>
 						<td></td>
-						<td style="text-align: right;"><button type="button" onclick="addUser();">save</button></td>
+						<td style="text-align: right;">
+							<button type="button" onclick="displayAddUserDiv();">cancel</button>
+							<button type="button" onclick="addUser();">save</button>
+						</td>
 					</tr>
 				</table>
 			</form>

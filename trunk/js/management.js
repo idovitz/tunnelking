@@ -19,8 +19,10 @@ function onLoadStatus(res){
 }
 
 function stoprestart(action){
-	var d = loadJSONDoc("/cm/stoprestart", {'action':action});
-	d.addCallbacks(onStoprestart, onFault);
+	if(confirm("Really "+action+" this configuration?")) {
+		var d = loadJSONDoc("/cm/stoprestart", {'action':action});
+		d.addCallbacks(onStoprestart, onFault);
+	}
 }
 
 function onStoprestart(res){

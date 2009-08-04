@@ -68,7 +68,7 @@ function onUserDelete(res) {
 }
 
 function userGet(id) {
-	var d = loadJSONDoc("/um/getUser", {id:id});
+	var d = loadJSONDoc("/um/getUserPackage", {id:id});
 	d.addCallbacks(onUserGet, onFault);
 }
 

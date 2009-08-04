@@ -3,13 +3,12 @@
 # Copyright (C) 2009  IJSSELLAND ZIEKENHUIS
 ##################################################
 
-import cherrypy, cjson, config
+import cherrypy, cjson, config, operator
 from DBmysql import *
 from User import *
 
 class UserManager:
 	def __init__(self):
-		self.loaded = 0
 		self.users = {}
 		self.loadUsers()
 		
@@ -34,11 +33,16 @@ class UserManager:
 	def getUserNames(self):
 		cherrypy.response.headers['Content-Type'] = 'application/json'
 		
-		confid = cherrypy.session['confid']
+		confid = int(cherrypy.session['confid'])
 		
 		if self.users.has_key(confid):
+			print self.users[confid]
 			results = []
-			for key, user in self.users[confid].iteritems():
+			
+			users = self.users[confid].values()
+			users.sort(key=lambda obj: obj["name"])
+			
+			for user in users:
 				print user
 				results.append({'id':user["id"], 'name':user["name"]})
 		else:
@@ -48,7 +52,7 @@ class UserManager:
 	getUserNames.exposed = True
 	
 	def addUser(self, name, password):
-		confid = cherrypy.session['confid']
+		confid = int(cherrypy.session['confid'])
 		
 		newuser = User()
 		results = newuser.new(name, password, confid)
@@ -63,7 +67,7 @@ class UserManager:
 	addUser.exposed = True
 	
 	def delUser(self, id):
-		confid = cherrypy.session['confid']
+		confid = int(cherrypy.session['confid'])
 		
 		results = self.users[confid][int(id)].delete()
 		
@@ -72,13 +76,13 @@ class UserManager:
 		return cjson.encode({'result':results})
 	delUser.exposed = True
 	
-	def getUser(self, id):
-		confid = cherrypy.session['confid']
+	def getUserPackage(self, id):
+		confid = int(cherrypy.session['confid'])
 		
 		results = self.users[confid][int(id)].getPackage()
 		
 		return cjson.encode({'result':results})
-	getUser.exposed = True
+	getUserPackage.exposed = True
 	
 	def delUsers(self, confid):
 		self.users[confid] = None
