@@ -9,17 +9,41 @@ class ConfigurationManager:
 	def __init__(self):
 		self.loadConfigurations()
 		
-	def newConfiguration(self, configname, domain, o, ou, c, st, l):
+	def newConfiguration(self, configname, domain, o, ou, c, st, l, protocol, port):
 		cherrypy.response.headers['Content-Type'] = 'application/json'
 		
+		error = ""
+		
 		if self.configurations.has_key(configname) == False:
+			
+			if protocol != "" and port != "":
+				if self.checkFreePorts(protocol, port):
+					ports = [port, self.getFreePorts(configname)[1], protocol]
+				else:
+					result = False
+					error = "port is occupied"
+					return cjson.encode({"result": result, "error": error})
+			else:
+				ports = self.getFreePorts(configname)
+			
 			self.configurations[configname] = Configuration(0, configname, "")
-			self.configurations[configname].new(domain, o, ou, c, st, l)
-			self.loadConfigurations()
-			return cjson.encode({"result": True})
+			self.configurations[configname].new(domain, o, ou, c, st, l, ports, ldapDict)
+			#self.loadConfigurations()
+			
+			self.setConfiguration(self.configurations[configname].id)
+			result = True
 		else:
-			return cjson.encode({"result": False, "error": "name exists"})
+			result = False
+			error = "name exists"
+					
+		return cjson.encode({"result": result, "error": error})
 	newConfiguration.exposed = True
+	
+	def saveLdap(self, id, ip, dn, sf, bd, bp):
+		
+		cherrypy.session['currentconf'].saveLdap
+		
+		return cjson.encode({"result": result, "error": error})
 		
 	def setConfiguration(self, confid):
 		cherrypy.response.headers['Content-Type'] = 'application/json'
@@ -66,7 +90,7 @@ class ConfigurationManager:
 			if len(self.configurationNames) == 0:
 				self.loadConfigurations()
 			
-			return cjson.encode({"result": [self.configurationNames, cherrypy.session['confid']]})
+			return cjson.encode({"result": [self.configurationNames, int(cherrypy.session['confid'])]})
 		except Exception, e:
 			print "%s: %s" % (type(e), e)
 			return cjson.encode({"result": False})
@@ -83,7 +107,6 @@ class ConfigurationManager:
 		return cjson.encode({"result": result})
 	getStatus.exposed = True
 	
-	
 	def stoprestart(self, action):
 		if action in ["stop", "start", "restart"]:
 			result = self.configurations[str(cherrypy.session['confid'])].__getattribute__(action)()
@@ -93,3 +116,32 @@ class ConfigurationManager:
 		time.sleep(0.5)
 		return cjson.encode({"result": result})
 	stoprestart.exposed = True
+	
+	def getFreePorts(self, confname):
+		if len(self.configurations) != 0:
+			plist = []
+			mlist = []
+			for k,conf in self.configurations.iteritems():
+				if conf.name != confname:
+					plist.append(int(conf.options["port"][0]))
+					mlist.append(int(conf.options["management"][1]))
+			plist.sort()
+			mlist.sort()
+			plist.reverse()
+			mlist.reverse()
+		
+			return [plist[0]+1, mlist[0]+1]
+		else:
+			return [1194, 7500, "udp"]
+	
+	def checkFreePorts(self, protocol, port):
+		pplist = []
+		
+		for k,conf in self.configurations.iteritems():
+			pplist.append({'port':int(conf.options["port"][0]), 'proto':conf.options["proto"][0]})
+		
+		for i in pplist:
+			if {'port':port, 'proto':protocol} == i:
+				return false
+		
+		return True

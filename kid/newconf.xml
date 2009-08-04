@@ -2,40 +2,85 @@
 TR/html4/strict.dtd">
 <html py:layout="'layout.xml'" xmlns:py="http://purl.org/kid/ns#">
 	<div py:match="item.tag == 'content'" id="contentDiv">
+		<script type="text/javascript">
+			function initPage(){
+				
+			}
+		</script>
 		<div id="newConf">
 			<h3>new configuration</h3>
+		
 			<table>
+				<form id="newConfForm">
 				<tr>
-					<td>configuration name</td>
+					<td>configuration name*</td>
 					<td><input id="form_configname" type="text" maxchars="10" /></td>
 				</tr>
 				<tr>
-					<td>domain (ex: domain.com)</td>
+					<td>domain* (ex: domain.com)</td>
 					<td><input id="form_domain" type="text" /></td>
 				</tr>
 				<tr>
-					<td>organisation name</td>
+					<td>organisation name*</td>
 					<td><input id="form_o" type="text" /></td>
 				</tr>
 				<tr>
-					<td>department name</td>
+					<td>department name*</td>
 					<td><input id="form_ou" type="text" /></td>
 				</tr>
 				<tr>
-					<td>country</td>
+					<td>country*</td>
 					<td><input id="form_c" type="text" /></td>
 				</tr>
 				<tr>
-					<td>state/province</td>
+					<td>state/province*</td>
 					<td><input id="form_st" type="text" /></td>
 				</tr>
 				<tr>
-					<td>locality</td>
+					<td>locality*</td>
 					<td><input id="form_l" type="text" /></td>
 				</tr>
 				<tr>
+					<td>protocol</td>
+					<td><input id="protocol_udp" name="form_protocol" type="radio" value="udp" />udp&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input id="protocol_tcp" name="form_protocol" type="radio" value="tcp" />tcp</td>
+				</tr>
+				<tr>
+					<td>port</td>
+					<td><input id="form_port" type="text" /></td>
+				</tr>
+				<tr>
+					<td>ldap binding</td>
+					<td><input id="form_ldap" type="checkbox" onclick="showLdapDiv();" /></td>
+				</tr>
+				</form>
+				<tr>
 					<td></td>
-					<td style="text-align: right;"><input type="submit" value="generate config" onclick="newConfig();" /></td>
+					<td style="text-align: right;"><button onclick="newConfig();">generate config</button></td>
+				</tr>
+			</table>
+		</div>
+		<div id="ldapConf">
+			<h3>ldap</h3>
+			<table>
+				<tr>
+					<td>server host/ip*</td>
+					<td><input id="ldap_ip" type="text" /></td>
+				</tr>
+				<tr>
+					<td>base dn*</td>
+					<td><input id="ldap_dn" type="text" /></td>
+				</tr>
+				<tr>
+					<td>search filter*</td>
+					<td><input id="ldap_sf" type="text" /></td>
+				</tr>
+				<tr>
+					<td>bind dn*</td>
+					<td><input id="ldap_bd" type="text" /></td>
+				</tr>
+				<tr>
+					<td>bind password*</td>
+					<td><input id="ldap_bp" type="text" /></td>
 				</tr>
 			</table>
 		</div>

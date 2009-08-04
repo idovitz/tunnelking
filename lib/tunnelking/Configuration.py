@@ -12,8 +12,15 @@ class Configuration(object):
 		self.name = name
 		self.dn = dn
 		self.options = {}
+		self.data = {}
 				
 		self.db = DBmysql(config.databaseUserName, config.databasePassword, config.databaseName)
+			
+	def __setitem__(self, key, item):
+		self.data[key] = item
+		
+	def __getitem__(self, key):
+		return self.data[key]
 		
 	def load(self):
 		self.getOptions()
@@ -23,26 +30,26 @@ class Configuration(object):
 	def initConnectionManager(self):
 		self.connectionManager = ConnectionManager("127.0.0.1", self.options["management"][1])
 	
-	def new(self, domain, o, ou, c, st, l):
+	def new(self, domain, o, ou, c, st, l, ports):
 		# DEFAULT OPTIONS
 		self.options = { 'daemon': [''],
 						 'user': ['nobody'],
 						 'persist-key': [],
-						 'management': ['127.0.0.1', self.getFreePort(1)],
+						 'management': ['127.0.0.1', ports[1]],
 						 'group': ['nogroup'],
 						 'tls-auth': ['ssl/ta.key', '0'],
 						 'dh': ['ssl/dh1024.pem'],
-						 'proto': ['udp'],
-						 'ca': ['tmp/ca.%s.cert' % domain],
+						 'proto': [ports[2]],
+						 'ca': ['ssl/certs/ca.%s.cert' % domain],
 						 'dev': ['tun'],
 						 'server': ['192.168.123.0', '255.255.255.0'],
 						 'persist-tun': [],
-						 'cert': ['tmp/server.%s.cert' % domain],
+						 'cert': ['ssl/certs/server.%s.cert' % domain],
 						 'verb': ['3'],
 						 'mode': ['server'],
-						 'key': ['tmp/server.%s.key' % domain],
+						 'key': ['ssl/keys/server.%s.key' % domain],
 						 'keepalive': ['10', '60'],
-						 'port': [self.getFreePort(0)],
+						 'port': [ports[0]],
 						 'writepid': ['tmp/%s.pid' % self.name],
 						 'tls-server': [''],
 						 'persist-tun': [''],
@@ -58,6 +65,13 @@ class Configuration(object):
 		self.dn = domain
 		
 		self.saveOptions()
+		
+	def saveLdap(self, ip, dn, sf, bd, bp):
+		try:
+			self.db.execSQL("UPDATE configurations SET ldap = 1, ldap_server = '%s', ldap_user = '%s', ldap_pass = '%s', ldap_basedn = '%s', ldap_filter = '%s'" % (ip, bd, bp, dn, sf));
+			return True
+		except:
+			return False
 		
 	def delete(self):
 		self.stop()
@@ -143,12 +157,6 @@ class Configuration(object):
 		
 		return {'running': self.running(), 'connections': connections}
 	
-	def getFreePort(self, type):
-		if type == 1:
-			return '7500'
-		else:
-			return '1194'
-	
 	def start(self):
 		if not self.running():
 			args = ""
@@ -161,6 +169,7 @@ class Configuration(object):
 				
 				args = args+" "+arg
 			
+			print "/usr/bin/sudo /usr/sbin/openvpn"+args
 			p = Popen("/usr/bin/sudo /usr/sbin/openvpn"+args, shell=True, close_fds=True)
 		
 		return self.running()

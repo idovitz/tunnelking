@@ -16,8 +16,9 @@ TR/html4/strict.dtd">
 			<div id="controlDiv">
 				<input type="submit" value="start" onclick="stoprestart('start');" />
 				<input type="submit" value="stop" onclick="stoprestart('stop');" />
+				<input type="submit" value="restart" onclick="stoprestart('restart');" />
 			</div>
-		</div>
+		</div><!--
 		
 		<div id="basicConfDiv">
 			<b>Basic parameters</b>
@@ -36,5 +37,5 @@ TR/html4/strict.dtd">
 				</tr>
 			</table>
 		</div>
-	</div>
+	--></div>
 </html>

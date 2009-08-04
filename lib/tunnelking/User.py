@@ -3,7 +3,7 @@
 # Copyright (C) 2009  IJSSELLAND ZIEKENHUIS
 ##################################################
 
-import config, cherrypy
+import config, cherrypy, zipfile, time
 from DBmysql import *
 
 class User(object):
@@ -48,10 +48,23 @@ class User(object):
 			self[key] = item
 			
 	def getKeyCert(self):
-		cherrypy.session['currentconf'].ch.getUserKey("%s.users.%s" % (self.data['name'], cherrypy.session['currentconf'].dn), self.data['password'])
+		return cherrypy.session['currentconf'].ch.getUserKey("%s.users.%s" % (self.data['name'], cherrypy.session['currentconf'].dn), self.data['password'])
 	
 	def getPackage(self):
-		self.getKeyCert()
+		kc = self.getKeyCert()
+		
+		# open zip
+		zf = zipfile.ZipFile("tmp/%s.%s.zip" % (self.data["name"], cherrypy.session['currentconf'].dn), "w")
+		
+		# write cert/key to zip
+		now = time.localtime(time.time())[:6]
+		for k, v in kc.iteritems():
+			zfk = zipfile.ZipInfo("openvpn/config/%s" % k)
+			zfk.date_time = now
+			zfk.compress_type = zipfile.ZIP_DEFLATED
+			zf.writestr(zfk, v)
+		
+		zf.close()
 		
 		return True
 	
