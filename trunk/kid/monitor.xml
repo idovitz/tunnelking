@@ -1,0 +1,15 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/
+TR/html4/strict.dtd">
+<html py:layout="'layout.xml'" xmlns:py="http://purl.org/kid/ns#">
+	<div py:match="item.tag == 'content'" id="contentDiv">
+		<script type="text/javascript" src="js/monitor.js" />
+		<script type="text/javascript">
+			function initPage(){
+				loadStatus();
+				setInterval("loadStatus()", 5000);
+			}
+		</script>
+		<div id="connectionsDiv">
+		</div>
+	</div>
+</html>

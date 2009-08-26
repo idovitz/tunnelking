@@ -6,6 +6,7 @@ TR/html4/strict.dtd">
 		<script type="text/javascript">
 			function initPage(){
 				loadStatus();
+				loadPushOptions();
 			}
 		</script>
 		<div id="runningDiv">
@@ -18,24 +19,43 @@ TR/html4/strict.dtd">
 				<input type="submit" value="stop" onclick="stoprestart('stop');" />
 				<input type="submit" value="restart" onclick="stoprestart('restart');" />
 			</div>
-		</div><!--
+		</div>
 		
 		<div id="basicConfDiv">
-			<b>Basic parameters</b>
+			<b>push options</b>
 			<table>
 				<tr>
-					<td>ip protocol</td>
-					<td><input type="radio" name="protocol" value="tcp" />tcp</td>
-					<td><input type="radio" name="protocol" value="udp" />udp</td>
+					<td>routes (10.0.0.0 255.0.0.0 [enter])</td>
+					<td><textarea id="routesField" rows="4" cols="22" /></td>
 				</tr>
 				<tr>
-					<td>port</td>
-					<td colspan="2"><input type="text" id="portField" /></td>
+					<td>dns server 1</td>
+					<td><input type="text" id="dnsField1" /></td>
 				</tr>
 				<tr>
-					<td colspan="3"><input type="submit" value="save" /></td>
+					<td>dns server 2</td>
+					<td><input type="text" id="dnsField2" /></td>
+				</tr>
+				<tr>
+					<td>wins server 1</td>
+					<td><input type="text" id="winsField1" /></td>
+				</tr>
+				<tr>
+					<td>wins server 2</td>
+					<td><input type="text" id="winsField2" /></td>
+				</tr>
+				<tr>
+					<td>search domain</td>
+					<td><input type="text" id="domainField" /></td>
+				</tr>
+				<tr>
+					<td>custom options</td>
+					<td><textarea id="customsField" rows="4" cols="22" /></td>
+				</tr>
+				<tr>
+					<td><button onclick="savePushOptions();">save</button></td>
 				</tr>
 			</table>
 		</div>
-	--></div>
+	</div>
 </html>

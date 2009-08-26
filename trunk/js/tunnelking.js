@@ -43,15 +43,21 @@ function newConfig() {
 		ldapDict = {}
 	}else{
 		ldapDict = {
-			ip: document.getElementById("ldap_ip").value,
-			dn: document.getElementById("ldap_dn").value,
-			sf: document.getElementById("ldap_sf").value,
-			bd: document.getElementById("ldap_bd").value,
-			bp: document.getElementById("ldap_bp").value
+			ldap_ip: document.getElementById("ldap_ip").value,
+			ldap_dn: document.getElementById("ldap_dn").value,
+			ldap_sf: document.getElementById("ldap_sf").value,
+			ldap_bd: document.getElementById("ldap_bd").value,
+			ldap_bp: document.getElementById("ldap_bp").value
 		};
 	}
 	
-	var formdata = {
+	if(document.getElementById("protocol_udp").checked == true) {
+		var protocol = "udp";
+	}else{
+		var protocol = "tcp";
+	}
+	
+	var formdata = serializeJSON({
 		configname: document.getElementById("form_configname").value,
 		domain: document.getElementById("form_domain").value,
 		o: document.getElementById("form_o").value,
@@ -59,12 +65,15 @@ function newConfig() {
 		c: document.getElementById("form_c").value,
 		st: document.getElementById("form_st").value,
 		l: document.getElementById("form_l").value,
-		protocol: document.getElementById("newConfForm").elements['form_protocol'],
+		protocol: protocol,
 		port: document.getElementById("form_port").value,
-		ldapDict: ldapDict
-	};
+		pool: document.getElementById("form_pool").value,
+		netmask: document.getElementById("form_netmask").value,
+		remoteip: document.getElementById("form_remoteip").value,
+		ldapDict:ldapDict
+	});
 	
-	var d = loadJSONDoc("/cm/newConfiguration", formdata);
+	var d = loadJSONDoc("/cm/newConfiguration", {formdata:formdata});
 	d.addCallbacks(onNewConfig, onFault);
 }
 
@@ -85,10 +94,14 @@ function showLdapDiv() {
 }
 
 function delConf(){
-	var selector = document.getElementById("configSelect");
-	
-	var d = loadJSONDoc("/cm/delConfiguration", {"confid": selector.options[selector.selectedIndex].value});
-	d.addCallbacks(onDelConfig, onFault);
+	if(confirm("Really delete this configuration?")) {
+		if(confirm("This will delete all certificates and user! Sure?")) {
+			var selector = document.getElementById("configSelect");
+			
+			var d = loadJSONDoc("/cm/delConfiguration", {"confid": selector.options[selector.selectedIndex].value});
+			d.addCallbacks(onDelConfig, onFault);
+		}
+	}
 }
 
 function onDelConfig(){
