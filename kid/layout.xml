@@ -7,6 +7,7 @@ TR/html4/strict.dtd">
 <html xmlns:py="http://purl.org/kid/ns#">
 <head>
 	<title>TunnelKing</title>
+	<link rel="icon" type="image/png" href="img/favicon.png" />
 	<link rel="stylesheet" type="text/css" href="styles/tunnelking.css" />
 	<script type="text/javascript" src="js/mochikit/lib/MochiKit/MochiKit.js"></script>
 	<script src="js/tunnelking.js" type="text/javascript" />
@@ -14,23 +15,27 @@ TR/html4/strict.dtd">
 <body onload="getConfigNames();">
 	<div id="mainDiv">
 		<div id="headerDiv">
-			<!--<div id="logoDiv">
-				<a href="/"><img src="img/tunnelking.png" /></a>
-			</div>-->
 			<div id="selectDiv">
 				
 			</div>
 		</div>
 		<div id="menuDiv">
-			<select id="configSelect" onChange="configChange();">
-				
-			</select>
-			<input type="submit" value="new" onclick="window.location = 'newconf';" />
-			<input type="submit" value="del" onclick="delConf();" />
-			<hr />
-			<a href="/">management</a><br/>
-			<a href="/users">users</a><br/>
-			applications<br/>
+			<div id="configSelectDiv">
+				<select id="configSelect" onChange="configChange();">
+					
+				</select>
+			</div>
+			<div id="confMenuDiv">
+				<img src="img/new.png" onclick="window.location = 'newconf';" />
+				<img src="img/del.png" onclick="delConf();" />
+			</div>
+			<div id="menuLinkDiv">
+				<hr />
+				<a href="/">management</a><br/>
+				<a href="/monitor">monitor</a><br/>
+				<a href="/users">users</a><br/>
+				<a href="/apps">applications</a><br/>
+			</div>
 		</div>
 		<content>test</content>
 		<div id="footerDiv">&copy; 2009 - IJsselland Ziekenhuis</div>

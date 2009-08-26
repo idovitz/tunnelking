@@ -3,8 +3,9 @@
 # Copyright (C) 2009  IJSSELLAND ZIEKENHUIS
 ##################################################
 
-import config, cherrypy, zipfile, time
+import config, cherrypy
 from DBmysql import *
+from UserPackage import UserPackage
 
 class User(object):
 	def __init__(self):
@@ -16,23 +17,58 @@ class User(object):
 	def __getitem__(self, key):
 		return self.data[key]
 	
-	def new(self, name, password, confid):
+	def new(self, formdata, confid):
+		if not formdata.has_key("password"):	
+			formdata["password"] = "niks"
+			
 		try:
-			db = DBmysql(config.databaseUserName, config.databasePassword, config.databaseName)
-			db.execSQL("INSERT INTO users (confid, name, password) VALUES(%s, '%s', '%s')" % (confid, name, password))
-			self.data['id'] = db.cursor.lastrowid
+			cherrypy.thread_data.db.execSQL("INSERT INTO users (confid, name, keypin, password, otpRecipient) VALUES(%s, '%s', '%s', SHA1('%s'), '%s')" % (confid, formdata['name'], formdata['keypin'], formdata["password"], formdata["otpRecipient"]))
+			self.data['id'] = cherrypy.thread_data.db.cursor.lastrowid
 			self.load(self.data['id'])
 			
-			cherrypy.session['currentconf'].ch.createUserKey("%s.users.%s" % (name, cherrypy.session['currentconf'].dn))
+			cherrypy.session['currentconf'].ch.createUserKey("%s.users.%s" % (formdata['name'], cherrypy.session['currentconf'].dn))
 			return True
 		except Exception, e:
 			print type(e), e
 			return False
 	
+	def save(self, formdata):
+		try:
+			if formdata.has_key("keypin"):
+				if formdata["keypin"] != "":
+					keyPinSql = "keypin = '%s'," % formdata["keypin"]
+				else:
+					keyPinSql = ""
+			else:
+				keyPinSql = "keypin = '',"
+			
+			if formdata["password"] == "":
+				passSql = ""
+			else:
+				passSql = "password = SHA1('%s')," % formdata['password']
+			
+			if formdata.has_key("otpRecipient"):
+				if formdata["otpRecipient"] != "":
+					otpSql = "otpRecipient = '%s'" % formdata["otpRecipient"]
+				else:
+					otpSql = ""
+			else:
+				otpSql = "otpRecipient = ''"
+				
+			
+			sql = "UPDATE users SET %s %s %s WHERE id = %s" % (keyPinSql, passSql, otpSql, self.data['id'])
+			cherrypy.thread_data.db.execSQL(sql)
+			self.load(self.data['id'])
+			return True
+		except Exception, e:
+			print type(e), e
+			return False
+		
+	
 	def delete(self):
 		try:
-			db = DBmysql(config.databaseUserName, config.databasePassword, config.databaseName)
-			db.execSQL("DELETE FROM users WHERE id = %s" % self.data['id'])
+			cherrypy.thread_data.db.execSQL("DELETE FROM users WHERE id = %s" % self.data['id'])
+			cherrypy.thread_data.db.execSQL("DELETE FROM apps_users WHERE userid = %s" % self.data['id'])
 			cherrypy.session['currentconf'].ch.delUserKey("%s.users.%s" % (self.data['name'], cherrypy.session['currentconf'].dn))
 			return True
 		except Exception, e:
@@ -41,32 +77,48 @@ class User(object):
 		
 	
 	def load(self, userid):
-		db = DBmysql(config.databaseUserName, config.databasePassword, config.databaseName)
-		results = db.querySQL("SELECT * FROM users WHERE id = %s" % userid)
+		try:
+			results = cherrypy.thread_data.db.querySQL("SELECT * FROM users WHERE id = %s" % userid)
+		except:
+			results = {}
 		
 		for key, item in results[0].iteritems():
 			self[key] = item
+		
+		self.loadApps()
+	
+	def loadApps(self):
+		results = []
+		
+		try:
+			result = cherrypy.thread_data.db.querySQL("SELECT appname FROM apps_users WHERE userid = %s" % self.data['id'])
+		except:
+			result = {}
+			
+		for item in result:
+			results.append(item["appname"])
+			
+		self.apps = results
+		
+	def saveApps(self, apps):
+		try:
+			cherrypy.thread_data.db.execSQL("DELETE FROM apps_users WHERE userid = %s" % self.data['id'])
+			
+			for app in apps:
+				cherrypy.thread_data.db.execSQL("INSERT INTO apps_users (appname, userid) VALUES('%s', %s)" % (app, self.data['id']))
+				
+			self.loadApps()
+			return True
+		except:
+			return False
 			
 	def getKeyCert(self):
-		return cherrypy.session['currentconf'].ch.getUserKey("%s.users.%s" % (self.data['name'], cherrypy.session['currentconf'].dn), self.data['password'])
+		return cherrypy.session['currentconf'].ch.getUserKey(self.data['name'], cherrypy.session['currentconf'].dn, self.data['keypin'])
 	
 	def getPackage(self):
-		kc = self.getKeyCert()
+		package = UserPackage(self.data["name"], cherrypy.session['currentconf'].dn, self.getKeyCert(), self.apps)
 		
-		# open zip
-		zf = zipfile.ZipFile("tmp/%s.%s.zip" % (self.data["name"], cherrypy.session['currentconf'].dn), "w")
-		
-		# write cert/key to zip
-		now = time.localtime(time.time())[:6]
-		for k, v in kc.iteritems():
-			zfk = zipfile.ZipInfo("openvpn/config/%s" % k)
-			zfk.date_time = now
-			zfk.compress_type = zipfile.ZIP_DEFLATED
-			zf.writestr(zfk, v)
-		
-		zf.close()
-		
-		return True
+		return package.filename
 	
 	def __str__(self):
 		str = "{"

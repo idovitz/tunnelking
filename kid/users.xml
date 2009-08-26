@@ -1,15 +1,26 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/
-TR/html4/strict.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html py:layout="'layout.xml'" xmlns:py="http://purl.org/kid/ns#">
 	<div py:match="item.tag == 'content'" id="contentDiv">
 		<script type="text/javascript" src="js/user.js" />
 		<script type="text/javascript">
 			function initPage(){
 				getUsers();
+				
+				showTR(['pincodeLocalTR', 'pincodeLocalTR2'], 'userLocalAddPinCheck');
+				showTR(['otpLocalTR'], 'userLocalAddOTPCheck');
+				showTR(['pincodeTR', 'pincodeTR2'], 'userAddPinCheck');
+				showTR(['otpTR'], 'userAddOTPCheck');
 			}
 		</script>
 		<div id="searchBar">
-			<input type="submit" value="add user" onclick="displayAddUserDiv();" />
+			<div style="height: 20px; float: left; margin: 2px 0px 0px 4px;">
+				<img src="img/newuser.png" onclick="getUserType(false);" />
+			</div>
+			<div style="height: 20px; float: right; margin: 1px 1px 0px 0px;">
+				<input id="userSearchField" type="text" onkeyup="filterUsers();" />
+			</div>
+			<div style="clear:both;">
+			</div>
 		</div>
 		<div id="addDiv">
 			<b>Add User</b>
@@ -20,7 +31,7 @@ TR/html4/strict.dtd">
 						<td><input type="text" id="userAddName" /></td>
 					</tr>
 					<tr>
-						<td>pincode</td>
+						<td>password</td>
 						<td><input type="password" id="userAddPass" /></td>
 					</tr>
 					<tr>
@@ -28,14 +39,141 @@ TR/html4/strict.dtd">
 						<td><input type="password" id="userAddPass2" /></td>
 					</tr>
 					<tr>
+						<td>pin on key?</td>
+						<td><input id="userLocalAddPinCheck" type="checkbox" onclick="showTR(['pincodeLocalTR', 'pincodeLocalTR2'], 'userLocalAddPinCheck');" /></td>
+					</tr>
+					<tr id="pincodeLocalTR">
+						<td>pincode</td>
+						<td><input type="password" id="userAddKeyPin" /></td>
+					</tr>
+					<tr id="pincodeLocalTR2">
+						<td></td>
+						<td><input type="password" id="userAddKeyPin2" /></td>
+					</tr>
+					<tr>
+						<td>SMS</td>
+						<td><input id="userLocalAddOTPCheck" type="checkbox" onclick="showTR(['otpLocalTR'], 'userLocalAddOTPCheck');" /></td>
+					</tr>
+					<tr id="otpLocalTR">
+						<td>mobile-number</td>
+						<td><input type="text" id="otpLocalRecipient" /></td>
+					</tr>
+					<tr>
 						<td></td>
 						<td style="text-align: right;">
-							<button type="button" onclick="displayAddUserDiv();">cancel</button>
-							<button type="button" onclick="addUser();">save</button>
+							<button type="button" onclick="displayAddUserDiv('addDiv');">cancel</button>
+							<button type="button" onclick="addUser('addForm');">save</button>
 						</td>
 					</tr>
 				</table>
 			</form>
+		</div>
+		<div id="addLdapDiv">
+			<b>Add User</b>
+			<form id="addLdapForm">
+				<table>
+					<tr>
+						<td>search</td>
+						<td><input type="text" id="searchName" onkeyup="ldapSearch()" /></td>
+					</tr>
+					<tr>
+						<td></td>
+						<td><select size="6" id="userSelect" style="width: 100px;"></select></td>
+					</tr>
+					<tr>
+						<td>pin on key?</td>
+						<td><input id="userAddPinCheck" type="checkbox" onclick="showTR(['pincodeTR', 'pincodeTR2'], 'userAddPinCheck');" /></td>
+					</tr>
+					<tr id="pincodeTR">
+						<td>pincode</td>
+						<td><input type="password" id="userAddLdapKeyPin" /></td>
+					</tr>
+					<tr id="pincodeTR2">
+						<td></td>
+						<td><input type="password" id="userAddLdapKeyPin2" /></td>
+					</tr>
+					<tr>
+						<td>SMS</td>
+						<td><input id="userAddOTPCheck" type="checkbox" onclick="showTR(['otpTR'], 'userAddOTPCheck');" /></td>
+					</tr>
+					<tr id="otpTR">
+						<td>mobile-number</td>
+						<td><input type="text" id="otpLdapRecipient" /></td>
+					</tr>
+					<tr>
+						<td></td>
+						<td style="text-align: right;">
+							<button type="button" onclick="displayAddUserDiv('addLdapDiv');">cancel</button>
+							<button type="button" onclick="addUser('addLdapForm');">save</button>
+						</td>
+					</tr>
+				</table>
+			</form>
+		</div>
+		<div id="editDiv">
+			<b>Edit User</b>
+			<form id="editForm">
+				<table>
+					<tr>
+						<td>username</td>
+						<td id="userEditName"></td>
+					</tr>
+					<tr id="passwordTR">
+						<td>password</td>
+						<td><input type="password" id="userEditPass" /></td>
+					</tr>
+					<tr id="passwordTR2">
+						<td></td>
+						<td><input type="password" id="userEditPass2" /></td>
+					</tr>
+					<tr>
+						<td>pin on key?</td>
+						<td><input id="userLocalEditPinCheck" type="checkbox" onclick="showTR(['pincodeEditTR', 'pincodeEditTR2'], 'userLocalEditPinCheck');" /></td>
+					</tr>
+					<tr id="pincodeEditTR">
+						<td>pincode</td>
+						<td><input type="password" id="userEditKeyPin" /></td>
+					</tr>
+					<tr id="pincodeEditTR2">
+						<td></td>
+						<td><input type="password" id="userEditKeyPin2" /></td>
+					</tr>
+					<tr>
+						<td>SMS</td>
+						<td><input id="userLocalEditOTPCheck" type="checkbox" onclick="showTR(['otpEditTR'], 'userLocalEditOTPCheck');" /></td>
+					</tr>
+					<tr id="otpEditTR">
+						<td>mobile-number</td>
+						<td><input type="text" id="otpEditRecipient" /></td>
+					</tr>
+					<tr>
+						<td></td>
+						<td style="text-align: right;">
+							<button type="button" onclick="document.getElementById('editDiv').style.display = 'none';">cancel</button>
+							<button type="button" onclick="saveUser();">save</button>
+						</td>
+					</tr>
+				</table>
+			</form>
+		</div>
+		<div id="appsDiv">
+			<div style="width: 100%; margin: 0px 0px 10px 0px;"><b>Applications for user</b></div>
+			<div style="width: 100%; text-align: center;">
+				<select id="availApps" size="6" style="width: 120px;">
+					<option>test</option>
+					<option>djsfhsdj</option>
+				</select>
+			</div>
+			<div style="width: 100%; text-align: center;"><img src="img/down.png" onclick="addApp();" /><img src="img/up.png" onclick="delApp();" /></div>
+			<div style="width: 100%; text-align: center;">
+				<select id="userApps" size="6" style="width: 120px;">
+					
+				</select>
+			</div>
+			<div style="width: 100%; text-align: right; margin: 10px 0px 10px 0px;">
+				<button type="button" onclick="document.getElementById('appsDiv').style.display = 'none';">cancel</button>
+				<button type="button" onclick="saveApps();">save</button>
+			</div>
 		</div>
 		<div id="userDiv">
 			

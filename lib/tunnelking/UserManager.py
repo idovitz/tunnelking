@@ -3,21 +3,21 @@
 # Copyright (C) 2009  IJSSELLAND ZIEKENHUIS
 ##################################################
 
-import cherrypy, cjson, config, operator
+import cherrypy, cjson, config, operator, os
 from DBmysql import *
 from User import *
+from copy import copy
 
 class UserManager:
 	def __init__(self):
 		self.users = {}
-		self.loadUsers()
+		self.loaded = 0
 		
 	def loadUsers(self):
 		self.users = {}
 		
 		# get all users
-		db = DBmysql(config.databaseUserName, config.databasePassword, config.databaseName)
-		results = db.querySQL("SELECT id, confid FROM users")
+		results = cherrypy.thread_data.db.querySQL("SELECT id, confid FROM users")
 		
 		# load users in dict
 		for res in results:
@@ -33,17 +33,19 @@ class UserManager:
 	def getUserNames(self):
 		cherrypy.response.headers['Content-Type'] = 'application/json'
 		
+		if not self.loaded:
+			self.loadUsers()
+			self.loaded = 1
+		
 		confid = int(cherrypy.session['confid'])
 		
 		if self.users.has_key(confid):
-			print self.users[confid]
 			results = []
 			
 			users = self.users[confid].values()
 			users.sort(key=lambda obj: obj["name"])
 			
 			for user in users:
-				print user
 				results.append({'id':user["id"], 'name':user["name"]})
 		else:
 			results = False
@@ -51,11 +53,12 @@ class UserManager:
 		return cjson.encode({'result':results})
 	getUserNames.exposed = True
 	
-	def addUser(self, name, password):
+	def addUser(self, formdata):
 		confid = int(cherrypy.session['confid'])
+		formdata = cjson.decode(formdata)
 		
 		newuser = User()
-		results = newuser.new(name, password, confid)
+		results = newuser.new(formdata, confid)
 		
 		if results:
 			if self.users.has_key(confid) == False:
@@ -65,6 +68,54 @@ class UserManager:
 		
 		return cjson.encode({'result':results})
 	addUser.exposed = True
+	
+	def saveUser(self, id, formdata):
+		confid = int(cherrypy.session['confid'])
+		formdata = cjson.decode(formdata)
+		user = self.users[confid][int(id)]
+		
+		result = user.save(formdata)
+		
+		return cjson.encode({'result':result})
+	saveUser.exposed = True	
+		
+	
+	def getUserInfo(self, id):
+		confid = int(cherrypy.session['confid'])
+		user = self.users[confid][int(id)]
+		results = {'id':user["id"], 'name':user["name"], 'otpRecipient':user["otpRecipient"], 'keypin':(user["keypin"] != "")}
+		
+		return cjson.encode({'result':results})
+	getUserInfo.exposed = True
+	
+	def getUserApps(self, id):
+		result = {}
+		
+		# get user apps
+		confid = int(cherrypy.session['confid'])
+		user = self.users[confid][int(id)]
+		result['userapps'] = user.apps
+		
+		# get all apps
+		for root, dirs, files in os.walk("%s/apps" % config.basemap):
+			result['availapps'] = dirs
+			break
+		
+		availapps = copy(result['availapps'])
+		for app in availapps:
+			if app in result['userapps']:
+				result['availapps'].remove(app)
+		
+		return cjson.encode({'result':result})
+	getUserApps.exposed = True
+	
+	def saveUserApps(self, id, apps):
+		confid = int(cherrypy.session['confid'])
+		user = self.users[confid][int(id)]
+		result = user.saveApps(cjson.decode(apps)["names"])
+		
+		return cjson.encode({'result':result})
+	saveUserApps.exposed = True
 	
 	def delUser(self, id):
 		confid = int(cherrypy.session['confid'])
