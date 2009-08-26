@@ -12,10 +12,27 @@
 
 #menuDiv {
 	float: left;
-	border: 1px solid #CCCCCC;
 	width: 180px;
 	height: 420px;
 	padding: 10px 10px 10px 10px;
+}
+
+#confMenuDiv {
+	padding: 0px;
+	margin: 0px;
+	float: right;
+}
+
+#configSelectDiv {
+	padding: 0px;
+	margin: 0px;
+	float: left;
+}
+
+#menuLinkDiv {
+	padding: 0px;
+	margin: 0px;
+	clear: both;
 }
 
 #contentDiv {
@@ -47,11 +64,11 @@
 }
 
 img {
-	border: 0px;
+	margin: 0px;
+	padding: 0px;
 }
 
-button {
-	/* border: 1px solid blue; */
+button { /* border: 1px solid blue; */
 	font-size: 9px;
 	padding: 1px;
 }
@@ -72,6 +89,36 @@ button {
 	padding: 2px;
 }
 
+#addLdapDiv {
+	width: 270px;
+	height: 386px;
+	border: 1px solid #999999;
+	float: left;
+	display: none;
+	margin: 0px;
+	padding: 2px;
+}
+
+#editDiv {
+	width: 270px;
+	height: 386px;
+	border: 1px solid #999999;
+	float: left;
+	display: none;
+	margin: 0px;
+	padding: 2px;
+}
+
+#appsDiv {
+	width: 270px;
+	height: 386px;
+	border: 1px solid #999999;
+	float: left;
+	display: none;
+	margin: 0px;
+	padding: 2px;
+}
+
 #userDiv {
 	overflow: auto;
 	height: 390px;
@@ -79,11 +126,19 @@ button {
 	margin: 0px;
 }
 
+#userSearchField {
+	background: url('../img/search.png') no-repeat 2px 0px;
+	border: 1px solid #BFBFBF;
+	padding-left: 20px;
+	height: 16px;
+	width: 150px;
+}
+
 .userNameDiv {
 	padding: 5px 10px 5px 10px;
 	margin: 1px;
 	border: 1px solid #999999;
-	width: 754px;
+	width: 736px;
 }
 
 .userControlDiv {
@@ -92,10 +147,22 @@ button {
 	padding: 0px;
 }
 
-#runningDiv{
+#otpTR {
+	display: none;
+}
+
+#pincodeTR {
+	display: none;
+}
+
+#pincodeTR2 {
+	display: none;
+}
+
+#runningDiv {
 	float: left;
 	padding: 10px 10px 10px 10px;
-	border: 1px solid grey;
+	border: 1px dashed blue;
 	margin: 4px;
 }
 
@@ -106,23 +173,28 @@ button {
 	border: 2px solid red;
 }
 
-#basicConfDiv{
+#basicConfDiv {
 	float: left;
 	padding: 10px 10px 10px 10px;
-	border: 1px solid grey;
+	border: 1px dashed blue;
 	margin: 4px;
 }
 
-#newConf{
+#newConf {
 	float: left;
 	border: 1px dashed blue;
 	padding: 0px 10px 10px 10px;
 }
 
-#ldapConf{
+#ldapConf {
 	float: right;
 	display: none;
 	margin-right: 40px;
 	border: 1px dashed blue;
 	padding: 0px 10px 10px 10px;
+}
+
+.connectionDiv {
+	padding: 2px;
+	height: 16px;
 }
