@@ -12,7 +12,11 @@ log = Log(config.logging, "auth.py")
 log.log(3, "ldapauth started for user %s" % os.environ["username"])
 log.log(3, "environ %s" % os.environ)
 
+userid = None
+
 def main():
+	global userid
+	
 	domain = os.environ["tls_id_0"][os.environ["tls_id_0"].find("users.")+6:os.environ["tls_id_0"].find('/', 2)]
 	
 	# check serial
@@ -31,6 +35,7 @@ def main():
 				log.log(3, "exit sendKey")
 				sys.exit(1)
 			else:
+				logLastLogin(userid)
 				sys.exit(0)
 	else:
 		if checkLocal(domain):
@@ -38,9 +43,11 @@ def main():
 				log.log(3, "exit sendKey")
 				sys.exit(1)
 			else:
+				logLastLogin(userid)
 				sys.exit(0)
 				
 	if checkKey(os.environ["username"], os.environ["password"], domain, os.environ["untrusted_ip"]):
+		logLastLogin(userid)
 		sys.exit(0)
 	else:
 		sys.exit(1)
@@ -129,6 +136,7 @@ def checkLdap():
 		return False
 
 def sendKey(domain, username, ip):
+	global userid
 	log.log(2, "sendkey")
 	
 	key = ""
@@ -146,6 +154,9 @@ def sendKey(domain, username, ip):
 	except Exception, e:
 		log.log(2, "%s: %s" % (type(e), e))
 		sys.exit(1)
+		
+	if len(result) != 0:
+		userid = result[0]["id"]
 	
 	if result[0]["otpRecipient"] != "":
 		try:
@@ -172,6 +183,7 @@ def sendKey(domain, username, ip):
 		return False
 
 def checkKey(username, key, domain, ip):
+	global userid
 	log.log(3, "checkkey")
 	
 	# remove old keys
@@ -189,6 +201,7 @@ def checkKey(username, key, domain, ip):
 		log.log(3, "sql: %s" % (len(result)))
 		
 		if len(result):
+			userid = result[0]["id"]
 			sql = "SELECT * FROM `keys` WHERE `userid` = %s AND `key` = '%s' AND `expiretime` > NOW() AND ip = '%s'" % (result[0]["id"], key, ip)
 			log.log(3, "sql: %s" % (sql))
 			result = db.querySQL(sql)
@@ -202,5 +215,15 @@ def checkKey(username, key, domain, ip):
 		log.log(2, "%s: %s" % (type(e), e))
 		sys.exit(1)
 
+def logLastLogin(id):
+	# insert session key
+	try:
+		db = DBmysql(config.databaseUserName, config.databasePassword, config.databaseName)
+		sql = "UPDATE users SET lastlogin = NOW() WHERE id = %s" % id
+		db.execSQL(sql)
+	except Exception, e:
+		log.log(2, "%s: %s" % (type(e), e))
+		sys.exit(1)
+	
 if __name__ == '__main__':
     main()

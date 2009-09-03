@@ -27,9 +27,9 @@ function onLoadStatus(res){
 	for(i in connections){
 		
 		if(ccount % 2)
-			var style = "style='background-color: grey;'";
+			var style = "style='background-color: #EEEEEE;'";
 		else
-			var style = "style='background-color: lightblue;'";
+			var style = "style='background-color: #DDDDDD;'";
 		
 		html += '<div id="conDiv_'+i+'" '+style+' class="connectionDiv">'+
 					'<div style="float: left; width: 120px; margin-left: 4px;">'+

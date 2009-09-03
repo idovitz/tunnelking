@@ -10,6 +10,7 @@ from UserPackage import UserPackage
 class User(object):
 	def __init__(self):
 		self.data = {}
+		self.autostart = ""
 			
 	def __setitem__(self, key, item):
 		self.data[key] = item
@@ -91,21 +92,29 @@ class User(object):
 		results = []
 		
 		try:
-			result = cherrypy.thread_data.db.querySQL("SELECT appname FROM apps_users WHERE userid = %s" % self.data['id'])
+			result = cherrypy.thread_data.db.querySQL("SELECT appname, autostart FROM apps_users WHERE userid = %s" % self.data['id'])
 		except:
 			result = {}
 			
 		for item in result:
 			results.append(item["appname"])
+			if item["autostart"] == 1:
+				self.autostart = item["appname"]
 			
 		self.apps = results
 		
-	def saveApps(self, apps):
+	def saveApps(self, apps, autostart):
 		try:
 			cherrypy.thread_data.db.execSQL("DELETE FROM apps_users WHERE userid = %s" % self.data['id'])
 			
+			
 			for app in apps:
-				cherrypy.thread_data.db.execSQL("INSERT INTO apps_users (appname, userid) VALUES('%s', %s)" % (app, self.data['id']))
+				if autostart == app:
+					auto = 1
+				else:
+					auto = 0
+				 
+				cherrypy.thread_data.db.execSQL("INSERT INTO apps_users (appname, userid, autostart) VALUES('%s', %s, %s)" % (app, self.data['id'], auto))
 				
 			self.loadApps()
 			return True
@@ -116,7 +125,7 @@ class User(object):
 		return cherrypy.session['currentconf'].ch.getUserKey(self.data['name'], cherrypy.session['currentconf'].dn, self.data['keypin'])
 	
 	def getPackage(self):
-		package = UserPackage(self.data["name"], cherrypy.session['currentconf'].dn, self.getKeyCert(), self.apps)
+		package = UserPackage(self.data["id"], self.data["name"], cherrypy.session['currentconf'].dn, self.getKeyCert(), self.apps)
 		
 		return package.filename
 	

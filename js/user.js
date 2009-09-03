@@ -1,5 +1,6 @@
 var editUserId = 0;
 var userArr;
+var autostart = "";
 
 function getUsers() {
 	var d = loadJSONDoc("/um/getUserNames");
@@ -19,15 +20,21 @@ function drawUsers(users, filter) {
 	html = "";
 	for(i in users) {
 		if(filter == "" || users[i]["name"].search(filter) != -1) {
-			html += '<div id="userDiv_'+users[i]["id"]+'" class="userNameDiv">'+
-				users[i]["name"]+
-				'<div class="userControlDiv">' +
-					'<img src="img/apps.png" onclick="displayAppsDiv('+users[i]["id"]+');" />' +
-					'<img src="img/userdownload.png" onclick="userGet('+users[i]["id"]+');" />' +
-					'<img src="img/useredit.png" onclick="getUserType('+users[i]["id"]+');" />' +
-					'<img src="img/userdelete.png" onclick="userDelete('+users[i]["id"]+');" />' +
-				'</div>'+
-			'</div>';
+			if(users[i]["lastlogin"]){
+				var lastlogintext = 'last login: '+users[i]["lastlogin"];
+			}else{
+				var lastlogintext = 'never logged in';
+			}
+			html += '<div id="userDiv_'+users[i]["id"]+'" class="userDiv">'+
+						'<div class="userNameDiv">'+users[i]["name"]+'</div>' +
+						'<div class="userControlDiv">' +
+							'<img src="img/apps.png" onclick="displayAppsDiv('+users[i]["id"]+');" />' +
+							'<img src="img/userdownload.png" onclick="userGet('+users[i]["id"]+');" />' +
+							'<img src="img/useredit.png" onclick="getUserType('+users[i]["id"]+');" />' +
+							'<img src="img/userdelete.png" onclick="userDelete('+users[i]["id"]+');" />' +
+						'</div>'+
+						'<div class="userLastLoginDiv">'+lastlogintext+'</div>' +
+					'</div>';
 		}
 	}
 	
@@ -52,23 +59,24 @@ function getUserType(id) {
 
 function onGetUserType(res) {
 	if(res["result"]["ldap"] == "True" || res["result"]["ldap"] == true){
-		var addDiv = document.getElementById("addLdapDiv");
+		MochiKit.Visual.appear('addLdapDiv');
 	}else{
-		var addDiv = document.getElementById("addDiv");
+		MochiKit.Visual.appear('addDiv');
 	}
-	
-	addDiv.style.display = "inline";
 }
 
 function displayAddUserDiv(name) {
 	var addDiv = document.getElementById(name);
 	
 	document.getElementById("addForm").reset();
+	document.getElementById("addLdapForm").reset();
 	
 	if(addDiv.style.display == "inline"){
-		addDiv.style.display = "none";
+		MochiKit.Visual.slideUp(name);
+//		addDiv.style.display = "none";
 	}else{
-		addDiv.style.display = "inline";
+		MochiKit.Visual.slideDown(name);
+//		addDiv.style.display = "inline";
 	}
 }
 
@@ -151,7 +159,7 @@ function saveUser() {
 	
 	var checkFields = ["userEditKeyPin", "userEditPass"];
 	
-	if(checkPassFields(checkFields)){
+	if(checkPassFields(checkFields, 'editDiv')){
 		editDiv.style.display = "none";
 		document.getElementById("editForm").reset();
 		
@@ -185,7 +193,7 @@ function addUser(formname) {
 		var checkFields = ["userAddLdapKeyPin"];
 	}
 	
-	if(checkPassFields(checkFields)){
+	if(checkPassFields(checkFields, addDiv)){
 		addDiv.style.display = "none";
 		document.getElementById(formname).reset();
 		document.getElementById("userSelect").innerHTML = "";
@@ -195,7 +203,7 @@ function addUser(formname) {
 	}
 }
 
-function checkPassFields(passfields){
+function checkPassFields(passfields, divname){
 	var rs = true;
 	
 	for(p in passfields){
@@ -203,6 +211,8 @@ function checkPassFields(passfields){
 			rs = false;
 			document.getElementById(passfields[p]).style.border = "2px solid red";
 			document.getElementById(passfields[p]+"2").style.border = "2px solid red";
+			MochiKit.Visual.pulsate(passfields[p], {pulses:4});
+			MochiKit.Visual.pulsate(passfields[p]+"2", {pulses:4});
 		}else{
 			document.getElementById(passfields[p]).style.border = "";
 			document.getElementById(passfields[p]+"2").style.border = "";
@@ -256,6 +266,7 @@ function displayAppsDiv(userid) {
 function onGetUserApps(res) {
 	var asel = document.getElementById("availApps");
 	var usel = document.getElementById("userApps");
+	autostart = res["result"]["autostart"];
 	
 	asel.innerHTML = "";
 	var apps = res["result"]["availapps"];
@@ -269,6 +280,31 @@ function onGetUserApps(res) {
 	
 	for(i in apps){
 		appendChildNodes(usel, OPTION(null, apps[i]));
+	}
+	
+	var astart = document.getElementById("autostartInput");
+	astart.checked = false;
+}
+
+function checkAutoStart() {
+	var usel = document.getElementById("userApps");
+	var astart = document.getElementById("autostartInput");
+	
+	if(usel.value == autostart){
+		astart.checked = true;
+	}else{
+		astart.checked = false;
+	}
+}
+
+function changeAutostart(){
+	var usel = document.getElementById("userApps");
+	var astart = document.getElementById("autostartInput");
+	
+	if(astart.checked == false){
+		autostart = "";
+	}else{
+		autostart = usel.value;
 	}
 }
 
@@ -328,7 +364,7 @@ function saveApps() {
 		}
 	}
 	
-	var d = loadJSONDoc("/um/saveUserApps", {id:editUserId, apps:serializeJSON(apps)});
+	var d = loadJSONDoc("/um/saveUserApps", {id:editUserId, apps:serializeJSON(apps), autostart:autostart});
 	d.addCallbacks(onSaveApps, onFault);
 }
 

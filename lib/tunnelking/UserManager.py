@@ -7,6 +7,7 @@ import cherrypy, cjson, config, operator, os
 from DBmysql import *
 from User import *
 from copy import copy
+from types import NoneType
 
 class UserManager:
 	def __init__(self):
@@ -46,7 +47,14 @@ class UserManager:
 			users.sort(key=lambda obj: obj["name"])
 			
 			for user in users:
-				results.append({'id':user["id"], 'name':user["name"]})
+				print type(user["lastlogin"])
+				
+				if type(user["lastlogin"]) != NoneType:
+					lastlogin = user["lastlogin"].strftime("%d-%m-%Y %H:%M")
+				else:
+					lastlogin = ""
+				
+				results.append({'id':user["id"], 'name':user["name"], "lastlogin":lastlogin})
 		else:
 			results = False
 			
@@ -103,16 +111,18 @@ class UserManager:
 		
 		availapps = copy(result['availapps'])
 		for app in availapps:
-			if app in result['userapps']:
+			if app in result['userapps'] or app.find("__") != -1 or app.find(".") != -1:
 				result['availapps'].remove(app)
+				
+		result["autostart"] = user.autostart
 		
 		return cjson.encode({'result':result})
 	getUserApps.exposed = True
 	
-	def saveUserApps(self, id, apps):
+	def saveUserApps(self, id, apps, autostart):
 		confid = int(cherrypy.session['confid'])
 		user = self.users[confid][int(id)]
-		result = user.saveApps(cjson.decode(apps)["names"])
+		result = user.saveApps(cjson.decode(apps)["names"], autostart)
 		
 		return cjson.encode({'result':result})
 	saveUserApps.exposed = True

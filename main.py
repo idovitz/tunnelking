@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import os, sys, cherrypy, kid, cjson, config, hashlib
+import os, sys, cherrypy, kid, cjson, config, hashlib, pickle
 
 sys.path.append("%s/lib" % os.path.abspath(sys.path[0]))
 from tunnelking import *
@@ -29,11 +29,24 @@ class Root(object):
 		return t.serialize(output="html")
 	users.exposed = True
 	
-	def apps(self):
-		t = kid.Template('kid/apps.xml')
+	def getuserini(self, id):
+		sql = "SELECT us.id, app.appname, app.autostart FROM users AS us JOIN apps_users AS app ON app.userid = us.id WHERE us.id = %s" % id
+		results = cherrypy.thread_data.db.querySQL(sql)
 		
-		return t.serialize(output="html")
-	apps.exposed = True
+		for app in results:
+			f = open("%s/apps/%s/__info__" % (sys.path[0], app["appname"]), "r")
+			lines = f.readlines()
+			f.close()
+			
+			params = {}
+			for line in lines:
+				spline = line.strip().split("=")
+				params[spline[0]] = spline[1]
+			
+			app["currentversion"] = params["VERSION_PRODUCTION"]
+		
+		return pickle.dumps(list(results))
+	getuserini.exposed = True
 
 def shatoken(token):
 	return hashlib.sha1(token).hexdigest()
