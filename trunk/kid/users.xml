@@ -103,7 +103,7 @@
 					<tr>
 						<td></td>
 						<td style="text-align: right;">
-							<button type="button" onclick="displayAddUserDiv('addLdapDiv');">cancel</button>
+							<button type="button" onclick="MochiKit.Visual.toggle('addLdapDiv', 'appear');">cancel</button>
 							<button type="button" onclick="addUser('addLdapForm');">save</button>
 						</td>
 					</tr>
@@ -160,15 +160,17 @@
 			<div style="width: 100%; margin: 0px 0px 10px 0px;"><b>Applications for user</b></div>
 			<div style="width: 100%; text-align: center;">
 				<select id="availApps" size="6" style="width: 120px;">
-					<option>test</option>
-					<option>djsfhsdj</option>
+					
 				</select>
 			</div>
 			<div style="width: 100%; text-align: center;"><img src="img/down.png" onclick="addApp();" /><img src="img/up.png" onclick="delApp();" /></div>
 			<div style="width: 100%; text-align: center;">
-				<select id="userApps" size="6" style="width: 120px;">
+				<select id="userApps" size="6" style="width: 120px;" onclick="checkAutoStart();">
 					
 				</select>
+			</div>
+			<div style="width: 100%; text-align: center;">
+				autostart <input type="checkbox" id="autostartInput" onclick="changeAutostart();" />
 			</div>
 			<div style="width: 100%; text-align: right; margin: 10px 0px 10px 0px;">
 				<button type="button" onclick="document.getElementById('appsDiv').style.display = 'none';">cancel</button>

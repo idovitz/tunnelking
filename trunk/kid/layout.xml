@@ -10,6 +10,7 @@ TR/html4/strict.dtd">
 	<link rel="icon" type="image/png" href="img/favicon.png" />
 	<link rel="stylesheet" type="text/css" href="styles/tunnelking.css" />
 	<script type="text/javascript" src="js/mochikit/lib/MochiKit/MochiKit.js"></script>
+	<script type="text/javascript" src="js/mochikit/lib/MochiKit/Visual.js"></script>
 	<script src="js/tunnelking.js" type="text/javascript" />
 </head>
 <body onload="getConfigNames();">
