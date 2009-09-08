@@ -136,7 +136,7 @@ class CertificateHelper:
 		self.certs[cn].setIssuer(self.caCert.getIssuer())
 		self.certs[cn].setPublicKey(self.keys[cn])
 		self.certs[cn].setNotBefore(0)
-		self.certs[cn].setNotAfter(int(time.time()) + 365*24*60*60)
+		self.certs[cn].setNotAfter(int(time.time()) + 365*24*60*60*3)
 		self.certs[cn].sign(self.caKey, digest.DigestType('sha1'))
 		
 		self.db.execSQL("""INSERT INTO `tunnelking`.`ssl` (`cn`, `confid`, `type`, `pem`) VALUES('%s', %s, 'key', '%s')""" % (cn, self.confid, self.keys[cn].toPEM_PrivateKey()))
