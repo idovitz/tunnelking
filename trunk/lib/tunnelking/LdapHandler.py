@@ -15,8 +15,8 @@ class LdapHandler:
 	def connect(self):
 		try:
 			self.con = ldap.open(self.ip)
-			self.con.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_NEVER)
-			self.con.set_option(ldap.OPT_REFERRALS, 0)
+			ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_NEVER)
+			ldap.set_option(ldap.OPT_REFERRALS, 0)
 			self.con.start_tls_s()
 			self.con.simple_bind_s(self.bd, self.bp)
 		except Exception, e:
