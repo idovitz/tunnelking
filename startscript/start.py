@@ -1,4 +1,6 @@
-import wx, time, urllib, sys, os, pickle, tarfile
+import wx, time, urllib, sys, os, pickle, tarfile, subprocess, socket
+
+socket.setdefaulttimeout(30)
 
 class Updater:
 	def __init__(self, ip, appname, version, gauge, procentLabel, tmpdir=""):
@@ -32,6 +34,34 @@ class UserInfo:
 		except Exception, e:
 			return False
 		
+class Uzip:
+	def __init__(self, gauge, statusLabel, percentLabel):
+		self.gauge = gauge
+		self.statusLabel = statusLabel
+		self.percentLabel = percentLabel
+		
+	def extract(self, filepath, path):
+		try:
+			zf = tarfile.open(filepath, "r:bz2")
+			names = zf.getnames()
+			total = len(names)
+			self.gauge.SetRange(total)
+			self.gauge.SetValue(0)
+		except Exception, e:
+			print "open bzip", type(e), e
+		
+		try:
+			i = 0
+			for filename in names:
+				i += 1
+				zf.extract(filename, path)
+				self.gauge.SetValue(i)
+				self.gauge.GetParent().app.Yield()
+				self.percentLabel.SetLabel("%s files done" % i)
+			zf.close()
+		except Exception, e:
+			print "extract bzip", type(e), e
+		
 class AppInfo:
 	def __init__(self, appname, tmpdir=""):
 		self.appname = appname
@@ -54,14 +84,12 @@ class AppInfo:
 			version = -1
 		return version
 	
-	def install(self):
+	def install(self, uzip):
 		try:
 			base = "%s\..\..\..\.."  % sys.path[0]
 			path = "%s\\%s\\" % (base, self.appname)
 			filepath = "%s%s.tar.bz2" % (self.tmpdir, self.appname)
-			zf = tarfile.open(filepath, "r:bz2")
-			zf.extractall(path)
-			zf.close()
+			uzip.extract(filepath, path)
 			os.remove(filepath)
 		except Exception, e:
 			return False
@@ -71,6 +99,8 @@ class MainWindow(wx.Frame):
 	""" We simply derive a new class of Frame. """
 	def __init__(self, parent, id, title):
 		wx.Frame.__init__(self, parent, id, title, size=(300,120))
+		#self.SetBackgroundStyle(wx.BG_STYLE_SYSTEM)
+		self.SetBackgroundColour(wx.Colour(255,255,255))
 				
 		self.gauge = wx.Gauge(parent=self, range=1000, pos=(10, 30), size=(200, 15))
 		self.label = wx.StaticText(parent=self, label="0%", pos=(220, 30))
@@ -102,29 +132,30 @@ class MainWindow(wx.Frame):
 					self.statusLabel.SetLabel("downloading %s" % app["appname"])
 					upd = Updater(ip, app["appname"], app["currentversion"], self.gauge, self.label, "..\\")
 					self.statusLabel.SetLabel("installing %s" % app["appname"])
-					appinf.install()
+					uzip = Uzip(self.gauge, self.statusLabel, self.label)
+					appinf.install(uzip)
 				elif int(myversion) < int(app["currentversion"]):
 					self.statusLabel.SetLabel("downloading new %s" % app["appname"])
 					upd = Updater(ip, app["appname"], app["currentversion"], self.gauge, self.label, "..\\")
 					self.statusLabel.SetLabel("updating %s" % app["appname"])
-					appinf.install()
+					uzip = Uzip(self.gauge, self.statusLabel, self.label)
+					appinf.install(uzip)
 		
 			if app["autostart"] == 1:
 				try:
+					self.statusLabel.SetLabel("start %s" % app["appname"])
 					starter = appinf.getstarter()
 				except Exception, e:
 					starter = False					
 					
 		if starter:
 			try:
-				s = os.system(starter)
+				subprocess.call([starter], shell=True)
 			except Exception, e:
 				s = False
 	
-		time.sleep(1)
 		sys.exit()
 	
-		
 	def closeWindow(self, event):
 #		self.Destroy()
 		sys.exit()
