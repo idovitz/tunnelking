@@ -4,6 +4,9 @@ import os, sys, cherrypy, kid, cjson, config, hashlib, pickle
 sys.path.append("%s/lib" % os.path.abspath(sys.path[0]))
 from tunnelking import *
 
+log = Log(config.logging, "main.py")
+log.log(3, "main.py")
+
 class Root(object):
 	def index(self):
 		t = kid.Template('kid/index.xml')
@@ -45,9 +48,62 @@ class Root(object):
 			
 			app["currentversion"] = params["VERSION_PRODUCTION"]
 		
-		return pickle.dumps(list(results))
+		returnDict = {}
+		returnDict["apps"] = list(results)
+		returnDict["getSms"] = True
+		return pickle.dumps(returnDict)
 	getuserini.exposed = True
 
+	def checkOTPKey(self, id, key):
+		ip = cherrypy.request.remote.ip
+		
+		try:
+			sql = "DELETE FROM `keys` WHERE `expiretime` < NOW()"
+			cherrypy.thread_data.db.execSQL(sql)
+		except Exception, e:
+			return e
+		
+		try:	
+			sql = "SELECT * FROM `keys` WHERE `key` = '%s' AND `expiretime` > NOW() AND lip = '%s' AND userid = %s" % (key, ip, id)
+			print sql
+			results = cherrypy.thread_data.db.querySQL(sql)
+		except Exception, e:
+			return "%s" % e
+		
+		print results
+		
+		if len(results):
+			sql = "UPDATE `keys` SET trusted = 1 WHERE `key` = '%s' AND `expiretime` > NOW() AND lip = '%s' AND userid = %s" % (key, ip, id)
+			print sql
+			cherrypy.thread_data.db.execSQL(sql)
+			
+			os.system("/usr/bin/sudo /usr/bin/qip.py delete %s" % ip)
+			return pickle.dumps(True)
+		else:
+			return pickle.dumps(False)
+	
+	checkOTPKey.exposed = True
+	
+	def newSms(self, id):
+		try:
+			ip = cherrypy.request.remote.ip
+			key = OtpKey(config, log)
+			
+			user = User()
+			user.load(id)
+			
+			key.sendKey(user, ip, "0.0.0.0")
+			return pickle.dumps(True)
+		except:
+			return pickle.dumps(False)
+	newSms.exposed = True	
+	
+	def test(self):
+		return "%s" % cherrypy.request.remote.ip
+	test.exposed = True
+	
+	
+	
 def shatoken(token):
 	return hashlib.sha1(token).hexdigest()
 

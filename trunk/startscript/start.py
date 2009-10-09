@@ -1,6 +1,6 @@
-import wx, time, urllib, sys, os, pickle, tarfile, subprocess, socket
+import wx, time, urllib, sys, os, pickle, tarfile, subprocess, socket, traceback
 
-socket.setdefaulttimeout(30)
+socket.setdefaulttimeout(10)
 
 class Updater:
 	def __init__(self, ip, appname, version, gauge, procentLabel, tmpdir=""):
@@ -20,19 +20,21 @@ class Updater:
 			
 		self.gauge.SetValue(pos)
 		self.label.SetLabel("%s%%" % (pos/10))
-		self.gauge.GetParent().app.Yield()
+		self.gauge.GetParent().GetParent().app.Yield()
 
 class UserInfo:
 	def get(self, ip, id):
 		try:
-			url = "https://%s:8080/getuserini?id=%s" % (ip, id)
-			time.sleep(2)
-			f = urllib.urlopen(url)
-			output = pickle.loads(f.read())
-			f.close()
-			return output
+			return self.getInfo(ip, id)
 		except Exception, e:
-			return False
+			return self.get(ip, id)
+	
+	def getInfo(self, ip, id):
+		url = "https://%s:8080/getuserini?id=%s" % (ip, id)
+		f = urllib.urlopen(url)
+		output = pickle.loads(f.read())
+		f.close()
+		return output
 		
 class Uzip:
 	def __init__(self, gauge, statusLabel, percentLabel):
@@ -56,7 +58,7 @@ class Uzip:
 				i += 1
 				zf.extract(filename, path)
 				self.gauge.SetValue(i)
-				self.gauge.GetParent().app.Yield()
+				self.gauge.GetParent().GetParent().app.Yield()
 				self.percentLabel.SetLabel("%s files done" % i)
 			zf.close()
 		except Exception, e:
@@ -94,49 +96,168 @@ class AppInfo:
 		except Exception, e:
 			return False
 
+class SmsDialog(wx.Frame):
+	def __init__(self, parent, ip, id, gauge, procentLabel, statusLabel):
+		self.gauge = gauge
+		self.label = procentLabel
+		self.statusLabel = statusLabel
+		self.procentLabel = procentLabel
+		self.ip = ip
+		self.id = id
+		wx.Frame.__init__(self, parent=parent, title="sms code", style=wx.FRAME_NO_TASKBAR | wx.CAPTION)
+		
+		self.smsPanel = wx.Panel(self, -1, name="smssen")
+		vBox = wx.BoxSizer(wx.VERTICAL)
+		vBox.Add(self.smsPanel, 1, wx.EXPAND | wx.ALL, 10)
+		self.SetSizer(vBox)
+		
+		self.SetBackgroundColour(self.smsPanel.GetBackgroundColour())
+		
+		smsGridSizer = wx.GridBagSizer(hgap=20, vgap=20)
+		self.smsPanel.SetSizer(smsGridSizer)
+		
+		self.stLabel = wx.StaticText(parent=self.smsPanel, label="vul de sms code in en klik op check")
+		smsGridSizer.Add(self.stLabel, border=2, pos=(0,0), span=(1,3), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+		
+		smsLabel = wx.StaticText(parent=self.smsPanel, label="sms code")
+		smsGridSizer.Add(smsLabel, pos=(1,0), flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL, border=10)
+		
+		self.smsInput = wx.TextCtrl(parent=self.smsPanel)
+		smsGridSizer.Add(self.smsInput, pos=(1,1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+		self.smsInput.Bind(wx.EVT_KEY_UP, self.keyUp)
+		
+		smsCheckButton = wx.Button(parent=self.smsPanel, label="check")
+		smsCheckButton.Bind(wx.EVT_BUTTON, self.checkSMS)
+		smsGridSizer.Add(smsCheckButton, pos=(1,2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+		
+		f = wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.NORMAL, wx.NORMAL, underline=True)
+		
+		self.newSmsLabel = wx.StaticText(parent=self.smsPanel, label="nieuwe sms")
+		self.newSmsLabel.SetFont(f)
+		smsGridSizer.Add(self.newSmsLabel, border=2, pos=(2,0), span=(1,3), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+		self.newSmsLabel.Bind(wx.EVT_LEFT_UP, self.newSms)
+		
+		self.smsPanel.Fit()
+		self.Fit()
+	
+	def keyUp(self, event):
+		if event.GetKeyCode() == 13:
+			self.checkSMS(event)
+	
+	def checkSMS(self, event):
+		self.statusLabel.SetLabel("checking key..")
+		self.GetParent().app.Yield()
+		try:
+			url = "https://%s:8080/checkOTPKey?key=%s&id=%s" % (self.ip, self.smsInput.GetValue(), self.id)
+			self.gauge.SetValue(0)
+			self.procentLabel.SetLabel("0%")
+			f = urllib.urlopen(url)
+			output = pickle.loads(f.read())
+			
+			self.gauge.SetValue(1000)
+			self.procentLabel.SetLabel("100%")
+			
+			f.close()
+			
+			if output:
+				self.Close()
+				self.GetParent().handleApps()
+			else:
+				self.stLabel.SetLabel("de smscode is niet juist")
+				self.stLabel.SetForegroundColour(wx.Colour(255,0,0))
+				self.smsInput.SetValue("")
+			
+		except Exception, e:
+			print type(e), e
+			sys.exit(1)
+			
+	def newSms(self, event):
+		self.newSmsLabel.Disable()
+		self.newSmsLabel.Hide()
+		
+		self.timer = wx.Timer(self, 100)
+		self.timer.Start(10000)
+		self.Bind(wx.EVT_TIMER, self.showNew)
+		
+		try:
+			url = "https://%s:8080/newSms?id=%s" % (self.ip, self.id)
+			f = urllib.urlopen(url)
+			output = pickle.loads(f.read())
+			f.close()
+			
+			if output:
+				dlg = wx.MessageDialog(None, "Nieuwe sms is verstuurd.", 'SMS', wx.ICON_INFORMATION)
+				dlg.ShowModal()
+			else:
+				dlg = wx.MessageDialog(None, "Er ging iets fout met het versturen van de sms", 'SMS', wx.ICON_ERROR)
+				dlg.ShowModal()
+		except Exception, e:
+			traceback.print_exc()
+			sys.exit(1)
+
+	def showNew(self, event):
+		self.newSmsLabel.Enable()
+		self.newSmsLabel.Show()
 
 class MainWindow(wx.Frame):
-	""" We simply derive a new class of Frame. """
 	def __init__(self, parent, id, title):
-		wx.Frame.__init__(self, parent, id, title, size=(300,120))
-		#self.SetBackgroundStyle(wx.BG_STYLE_SYSTEM)
-		self.SetBackgroundColour(wx.Colour(255,255,255))
-				
-		self.gauge = wx.Gauge(parent=self, range=1000, pos=(10, 30), size=(200, 15))
-		self.label = wx.StaticText(parent=self, label="0%", pos=(220, 30))
+		wx.Frame.__init__(self, parent, id, title, size=(300,100), style=wx.FRAME_NO_TASKBAR | wx.CAPTION)
+		self.mainPanel = wx.Panel(self, -1)
 		
-		statusText = wx.StaticText(parent=self, label="status:", pos=(10, 10))
-		self.statusLabel = wx.StaticText(parent=self, label="", pos=(60, 10))
+		vBox = wx.BoxSizer(wx.VERTICAL)
+		vBox.Add(self.mainPanel, 1, wx.EXPAND | wx.ALL, 10)
+		self.SetSizer(vBox)
+		
+		self.SetBackgroundColour(self.mainPanel.GetBackgroundColour())
+				
+		self.gauge = wx.Gauge(parent=self.mainPanel, range=1000, pos=(10, 30), size=(200, 15))
+		self.label = wx.StaticText(parent=self.mainPanel, label="0%", pos=(220, 30))
+		
+		statusText = wx.StaticText(parent=self.mainPanel, label="status:", pos=(10, 10))
+		self.statusLabel = wx.StaticText(parent=self.mainPanel, label="", pos=(60, 10))
 		
 		self.Bind(wx.EVT_CLOSE, self.closeWindow)
 		self.Show(True)
 	
 	def init(self):
 		self.statusLabel.SetLabel("downloading user information")
-		ip, id = sys.argv[1], sys.argv[2]
+		self.ip, self.id = sys.argv[1], sys.argv[2]
 		self.app.Yield()
 		time.sleep(0.1)
+		keyisnotchecked = False
 		
 		userinfo = UserInfo()
-		apps = userinfo.get(ip, id)
+		initdict = userinfo.get(self.ip, self.id)
+#		print initdict
 		self.gauge.SetValue(1000)
 		self.label.SetLabel("100%")
 		
+		self.apps = initdict["apps"]
+		
+		if initdict["getSms"]:
+			self.smsDialog = SmsDialog(self, self.ip, self.id, self.gauge, self.label, self.statusLabel)
+			
+			keyisnotchecked = True
+			self.smsDialog.Show()
+		else:
+			self.handleApps()
+	
+	def handleApps(self):
 		starter = False
-		for app in apps:
+		for app in self.apps:
 			appinf = AppInfo(app["appname"], "..\\")
 			myversion = appinf.getversion()
 			
 			if myversion != app["currentversion"]:
 				if myversion == -1:
 					self.statusLabel.SetLabel("downloading %s" % app["appname"])
-					upd = Updater(ip, app["appname"], app["currentversion"], self.gauge, self.label, "..\\")
+					upd = Updater(self.ip, app["appname"], app["currentversion"], self.gauge, self.label, "..\\")
 					self.statusLabel.SetLabel("installing %s" % app["appname"])
 					uzip = Uzip(self.gauge, self.statusLabel, self.label)
 					appinf.install(uzip)
 				elif int(myversion) < int(app["currentversion"]):
 					self.statusLabel.SetLabel("downloading new %s" % app["appname"])
-					upd = Updater(ip, app["appname"], app["currentversion"], self.gauge, self.label, "..\\")
+					upd = Updater(self.ip, app["appname"], app["currentversion"], self.gauge, self.label, "..\\")
 					self.statusLabel.SetLabel("updating %s" % app["appname"])
 					uzip = Uzip(self.gauge, self.statusLabel, self.label)
 					appinf.install(uzip)
@@ -146,14 +267,14 @@ class MainWindow(wx.Frame):
 					self.statusLabel.SetLabel("start %s" % app["appname"])
 					starter = appinf.getstarter()
 				except Exception, e:
-					starter = False					
-					
+					starter = False
+			
 		if starter:
 			try:
 				subprocess.call([starter], shell=True)
 			except Exception, e:
 				s = False
-	
+		
 		sys.exit()
 	
 	def closeWindow(self, event):
@@ -171,5 +292,5 @@ class MyApp(wx.App):
 		frame.init()
 		return True
 
-app = MyApp()
+app = MyApp(False, "log.txt")
 app.MainLoop()
