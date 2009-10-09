@@ -33,6 +33,8 @@ class Root(object):
 	users.exposed = True
 	
 	def getuserini(self, id):
+		lip = cherrypy.request.remote.ip
+		
 		sql = "SELECT us.id, app.appname, app.autostart FROM users AS us JOIN apps_users AS app ON app.userid = us.id WHERE us.id = %s" % id
 		results = cherrypy.thread_data.db.querySQL(sql)
 		
@@ -50,7 +52,8 @@ class Root(object):
 		
 		returnDict = {}
 		returnDict["apps"] = list(results)
-		returnDict["getSms"] = True
+		returnDict["getSms"] = self.checkConnection(lip, id)
+		print returnDict
 		return pickle.dumps(returnDict)
 	getuserini.exposed = True
 
@@ -101,6 +104,21 @@ class Root(object):
 	def test(self):
 		return "%s" % cherrypy.request.remote.ip
 	test.exposed = True
+	
+	def checkConnection(self, lip, id):
+		try:
+			sql = "SELECT `trusted` FROM `keys` WHERE lip = '%s' AND userid = %s AND `expiretime` > NOW()" % (lip, id)
+			result = cherrypy.thread_data.db.querySQL(sql)
+		except Exception, e:
+			sys.exit(1)
+		
+		if len(result) != 0:
+			if result[0]['trusted'] == 1:
+				return False
+			else:
+				return True
+		else:
+			return True
 	
 	
 	
