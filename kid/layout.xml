@@ -35,7 +35,6 @@ TR/html4/strict.dtd">
 				<a href="/">management</a><br/>
 				<a href="/monitor">monitor</a><br/>
 				<a href="/users">users</a><br/>
-				<a href="/apps">applications</a><br/>
 			</div>
 		</div>
 		<content>test</content>

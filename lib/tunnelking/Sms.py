@@ -23,4 +23,4 @@ class Sms(object):
 		return "OK"
 		
 	def curl(self, number, msg):
-		 return urllib2.urlopen(self.options["url"], self.options["data"].replace("%number", number).replace("%msg", msg))
+		return urllib2.urlopen(self.options["url"], self.options["data"].replace("%number", number).replace("%msg", msg))

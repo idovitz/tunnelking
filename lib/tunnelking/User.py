@@ -3,7 +3,7 @@
 # Copyright (C) 2009  IJSSELLAND ZIEKENHUIS
 ##################################################
 
-import config, cherrypy
+import cherrypy
 from DBmysql import *
 from UserPackage import UserPackage
 

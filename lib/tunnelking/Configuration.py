@@ -62,7 +62,9 @@ class Configuration(object):
 						 'persist-remote-ip': [''],
 						 'duplicate-cn': [''],
 						 'username-as-common-name': [''],
-						 'comp-lzo': ['']
+						 'comp-lzo': [''],
+						 "script-security": ['3'],
+						 "topology": ['subnet']
 						 }		
 		
 		self.data["remoteip"] = formdata["remoteip"]
@@ -253,6 +255,8 @@ class Configuration(object):
 				args = args+' --auth-user-pass-verify \"<basemap>auth.py %s %s\" via-env' % (self.data["ldap_ip"], self.dn)
 			else:
 				args = args+" --auth-user-pass-verify \"<basemap>auth.py\" via-env"
+				
+			args = args+" --learn-address \"<basemap>learnaddress.py %s\"" % (self.dn)
 			
 			for key, values in self.options.iteritems():
 				arg = "--"+key
@@ -301,6 +305,7 @@ class Configuration(object):
 							os.remove("%s/%s" % (dir[0], file))
 							
 				# remove pid
-				os.remove("tmp/%s.pid" % self.name)
+				if os.path.exists("tmp/%s.pid" % self.name):
+					os.remove("tmp/%s.pid" % self.name)
 		
 		return not self.running()
