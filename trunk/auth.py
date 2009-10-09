@@ -32,10 +32,14 @@ def main():
 		if checkLdap(domain):
 			logLastLogin(userid)
 			sys.exit(0)
+		else:
+			sys.exit(1)
 	else:
 		if checkLocal(domain):
 			logLastLogin(userid)
 			sys.exit(0)
+		else:
+			sys.exit(1)
 				
 #	if checkKey(os.environ["username"], os.environ["password"], domain, os.environ["untrusted_ip"]):
 #		logLastLogin(userid)
