@@ -18,10 +18,14 @@ if action == "add":
 	s = 0
 	while s==0:
 		time.sleep(0.1)
+		log.log(3, "iptables -D FORWARD -s %s -j ACCEPT" % ip)
 		s = os.system("iptables -D FORWARD -s %s -j ACCEPT" % ip)
 elif action == "delete":
 	s = 0
 	while s==0:
 		time.sleep(0.1)
+		log.log(3, "iptables -D FORWARD -s %s -j ACCEPT" % ip)
 		s = os.system("iptables -D FORWARD -s %s -j ACCEPT" % ip)
+	
+	log.log(3, "iptables -A FORWARD -s %s -j ACCEPT" % ip)
 	os.system("iptables -A FORWARD -s %s -j ACCEPT" % ip)
