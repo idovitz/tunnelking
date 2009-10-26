@@ -63,7 +63,7 @@ class Configuration(object):
 						 'duplicate-cn': [''],
 						 'username-as-common-name': [''],
 						 'comp-lzo': [''],
-						 "script-security": ['3'],
+						 #"script-security": ['3'],
 						 "topology": ['subnet']
 						 }		
 		

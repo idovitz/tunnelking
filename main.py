@@ -37,6 +37,9 @@ class Root(object):
 		
 		sql = "SELECT us.id, app.appname, app.autostart FROM users AS us JOIN apps_users AS app ON app.userid = us.id WHERE us.id = %s" % id
 		results = cherrypy.thread_data.db.querySQL(sql)
+		results = list(results)
+		
+		results.append({"appname":"__base__", "autostart":0})
 		
 		for app in results:
 			f = open("%s/apps/%s/__info__" % (sys.path[0], app["appname"]), "r")
