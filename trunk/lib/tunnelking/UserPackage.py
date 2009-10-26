@@ -67,7 +67,7 @@ class UserPackage:
 				   "auth-user-pass": [],
 				   "reneg-sec": ["0"],
 				   "comp-lzo": [""],
-				   "up": ["\"start /B ..\\\start\\\start.exe %s %s\"" % (server, self.userid)],
+				   "up": ["\"start /B ..\\\start\\\start.exe --ip %s --id %s --mo updater\"" % (server, self.userid)],
 				   "script-security": ["3", "system"]
 		}
 		

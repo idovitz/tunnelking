@@ -1,14 +1,19 @@
-import wx, time, urllib, sys, os, pickle, tarfile, subprocess, socket, traceback
+import wx, time, urllib, sys, os, pickle, tarfile, subprocess, socket, traceback, tempfile, shutil
+import win32api, win32pdhutil, win32con
+from distutils import dir_util
+from optparse import OptionParser
 
 socket.setdefaulttimeout(10)
 
 class Updater:
-	def __init__(self, ip, appname, version, gauge, procentLabel, tmpdir=""):
+	def __init__(self, ip, appname, version, gauge, procentLabel):
 		self.gauge = gauge
 		self.label = procentLabel
 		url = "https://%s:8080/apps/%s/%s.tar.bz2" % (ip, appname, version)
 		
-		urllib.urlretrieve(url, "%s%s.tar.bz2" % (tmpdir, appname), self.reporthook)
+		self.gauge.SetValue(0)
+		self.gauge.SetRange(1000)
+		urllib.urlretrieve(url, "%s\\%s.tar.bz2" % (tempfile.gettempdir(), appname), self.reporthook)
 	
 	def reporthook(self, blocks, blocksize, filesize):
 		if filesize > blocksize:
@@ -24,15 +29,14 @@ class Updater:
 
 class UserInfo:
 	def get(self, ip, id):
-		try:
-			return self.getInfo(ip, id)
-		except Exception, e:
-			return self.get(ip, id)
+		return self.getInfo(ip, id)
 	
 	def getInfo(self, ip, id):
 		url = "https://%s:8080/getuserini?id=%s" % (ip, id)
+		print "url"+url
 		f = urllib.urlopen(url)
 		output = pickle.loads(f.read())
+		print output
 		f.close()
 		return output
 		
@@ -42,10 +46,14 @@ class Uzip:
 		self.statusLabel = statusLabel
 		self.percentLabel = percentLabel
 		
-	def extract(self, filepath, path):
+	def extract(self, filepath, path, filter=None):
 		try:
 			zf = tarfile.open(filepath, "r:bz2")
 			names = zf.getnames()
+			
+			if filter != None:
+				names = self.filternames(names, filter)
+			
 			total = len(names)
 			self.gauge.SetRange(total)
 			self.gauge.SetValue(0)
@@ -63,11 +71,18 @@ class Uzip:
 			zf.close()
 		except Exception, e:
 			print "extract bzip", type(e), e
+	
+	def filternames(self, names, filter):
+		newnames = []
+		for name in names:
+			if filter in name:
+				newnames.append(name)
 		
+		return newnames
+			
 class AppInfo:
-	def __init__(self, appname, tmpdir=""):
+	def __init__(self, appname):
 		self.appname = appname
-		self.tmpdir = tmpdir
 	
 	def getstarter(self):
 		base = "%s\..\..\..\.."  % sys.path[0]
@@ -79,7 +94,11 @@ class AppInfo:
 	def getversion(self):
 		try:
 			base = "%s\..\..\..\.."  % sys.path[0]
-			filepath = "%s\\%s\\_version_" % (base, self.appname)
+			
+			if self.appname != "__base__":
+				filepath = "%s\\%s\\_version_" % (base, self.appname)
+			else:
+				filepath = "%s\\..\\_version_" % (base)
 			f = open(filepath, "r")
 			version = f.readlines()[0].strip()
 		except:
@@ -88,12 +107,44 @@ class AppInfo:
 	
 	def install(self, uzip):
 		try:
+			# unpack and remove bzip
 			base = "%s\..\..\..\.."  % sys.path[0]
 			path = "%s\\%s\\" % (base, self.appname)
-			filepath = "%s%s.tar.bz2" % (self.tmpdir, self.appname)
+			filepath = "%s\\%s.tar.bz2" % (tempfile.gettempdir(), self.appname)
 			uzip.extract(filepath, path)
 			os.remove(filepath)
 		except Exception, e:
+			return False
+	
+	def installBase(self, uzip, stickpath):
+		try:
+			# unpack and remove bzip
+			filepath = "%s\\%s.tar.bz2" % (tempfile.gettempdir(), self.appname)
+			uzip.extract(filepath, stickpath)
+			os.remove(filepath)
+		except Exception, e:
+			return False
+			
+	def installStarter(self, uzip):
+		try:
+			base = tempfile.gettempdir()
+			path = "%s\\%s\\" % (base, self.appname)
+			filepath = "%s\\%s.tar.bz2" % (base, self.appname)
+			startpath = "%s\\%s\\PortableApps\\OpenVPNPortable\\data\\start" % (base, self.appname)
+		
+			# try to remove tmp dirs
+			try:
+				shutil.rmtree(path)
+			except:
+				print "remove failed"
+		
+			# Unpack and remove bzip
+			uzip.extract(filepath, path, "PortableApps/OpenVPNPortable/data/start/")
+			
+			return startpath
+			
+		except Exception, e:
+			print "installStarter failed: %s (%s)" % (type(e), e)
 			return False
 
 class SmsDialog(wx.Frame):
@@ -201,6 +252,7 @@ class SmsDialog(wx.Frame):
 
 class MainWindow(wx.Frame):
 	def __init__(self, parent, id, title):
+		print "Frame __init__"
 		wx.Frame.__init__(self, parent, id, title, size=(300,100), style=wx.FRAME_NO_TASKBAR | wx.CAPTION)
 		self.mainPanel = wx.Panel(self, -1)
 		
@@ -220,49 +272,119 @@ class MainWindow(wx.Frame):
 		self.Show(True)
 	
 	def init(self):
-		self.statusLabel.SetLabel("downloading user information")
-		self.ip, self.id = sys.argv[1], sys.argv[2]
-		self.app.Yield()
-		time.sleep(0.1)
-		keyisnotchecked = False
+		# options
+		parser = OptionParser()
+		parser.add_option("--mo", dest="mode", help="updater | baseupdate", metavar="MODE")
+		parser.add_option("--id", dest="id", help="userid in tunnelking", metavar="USERID")
+		parser.add_option("--ip", dest="ip", help="ip address via tunnel", metavar="IP")
+		parser.add_option("--sp", dest="stickpath", help="path stick (g:)", metavar="PATH")
 		
-		userinfo = UserInfo()
-		initdict = userinfo.get(self.ip, self.id)
-#		print initdict
-		self.gauge.SetValue(1000)
-		self.label.SetLabel("100%")
+		(options, args) = parser.parse_args()
+		print options
 		
-		self.apps = initdict["apps"]
-		
-		if initdict["getSms"]:
-			self.smsDialog = SmsDialog(self, self.ip, self.id, self.gauge, self.label, self.statusLabel)
+		self.ip = options.ip
+		self.id = options.id
+	
+		if options.mode == "updater":
+			self.statusLabel.SetLabel("downloading user information")
+			self.app.Yield()
 			
-			keyisnotchecked = True
-			self.smsDialog.Show()
-		else:
-			self.handleApps()
+			time.sleep(4)
+			self.app.Yield()
+			
+			keyisnotchecked = False
+			
+			userinfo = UserInfo()
+			try:
+				initdict = userinfo.get(self.ip, self.id)
+			except:
+				try:
+					self.statusLabel.SetLabel("downloading user information 2")
+					initdict = userinfo.get(self.ip, self.id)
+				except Exception, e:
+					print "second time failed: %s (%s)" % (type(e), e)
+					self.killProcess("openvpn.exe")
+					sys.exit(1)
+			
+			
+			self.gauge.SetValue(1000)
+			self.label.SetLabel("100%")
+			
+			self.apps = initdict["apps"]
+			
+			if initdict["getSms"]:
+				self.smsDialog = SmsDialog(self, self.ip, self.id, self.gauge, self.label, self.statusLabel)
+				
+				keyisnotchecked = True
+				self.smsDialog.Show()
+			else:
+				self.handleApps()
+		elif options.mode == "baseupdate":
+			self.killProcess("openvpn.exe")
+			self.killProcess("openvpn-gui.exe")
+			self.killProcess("OpenVPNPortable.exe")
+			self.killProcess("PortableAppsPlatform.exe")
+			
+			self.statusLabel.SetLabel("update base software")
+			self.app.Yield()
+			time.sleep(2)
+			
+			appinf = AppInfo("__base__")
+			uzip = Uzip(self.gauge, self.statusLabel, self.label)
+			tmpstartdir = appinf.installBase(uzip, options.stickpath)
+			
+			subprocess.call(["start /B %sStartPortableApps.exe" % options.stickpath], shell=True)
+			
+			sys.exit(0)
+			
+	def killProcess(self, processname):
+		from win32com.client import GetObject
+		WMI = GetObject('winmgmts:')
+		processes = WMI.InstancesOf('Win32_Process')
+		process_list = [(p.Properties_("ProcessID").Value, p.Properties_("Name").Value) for p in processes]
+		
+		for pr in process_list:
+			if pr[1] == processname:
+				handle = win32api.OpenProcess( win32con.PROCESS_TERMINATE, 0, pr[0])
+				win32api.TerminateProcess(handle, 0)
+				win32api.CloseHandle(handle)
+				
+		print "killed %s" % processname
 	
 	def handleApps(self):
 		starter = False
 		for app in self.apps:
-			appinf = AppInfo(app["appname"], "..\\")
+			print "handleApps app %s" % app
+			appinf = AppInfo(app["appname"])
 			myversion = appinf.getversion()
 			
-			if myversion != app["currentversion"]:
+			if app["appname"] != "__base__" :
 				if myversion == -1:
 					self.statusLabel.SetLabel("downloading %s" % app["appname"])
-					upd = Updater(self.ip, app["appname"], app["currentversion"], self.gauge, self.label, "..\\")
+					upd = Updater(self.ip, app["appname"], app["currentversion"], self.gauge, self.label)
 					self.statusLabel.SetLabel("installing %s" % app["appname"])
 					uzip = Uzip(self.gauge, self.statusLabel, self.label)
 					appinf.install(uzip)
 				elif int(myversion) < int(app["currentversion"]):
 					self.statusLabel.SetLabel("downloading new %s" % app["appname"])
-					upd = Updater(self.ip, app["appname"], app["currentversion"], self.gauge, self.label, "..\\")
+					upd = Updater(self.ip, app["appname"], app["currentversion"], self.gauge, self.label)
 					self.statusLabel.SetLabel("updating %s" % app["appname"])
 					uzip = Uzip(self.gauge, self.statusLabel, self.label)
 					appinf.install(uzip)
+			else:
+				if int(myversion) < int(app["currentversion"]):
+					self.statusLabel.SetLabel("downloading new base")
+					upd = Updater(self.ip, app["appname"], app["currentversion"], self.gauge, self.label)
+					self.statusLabel.SetLabel("extracting new updater")
+					uzip = Uzip(self.gauge, self.statusLabel, self.label)
+					tmpstartdir = appinf.installStarter(uzip)
+					stickpath = "%s:\\" % sys.path[0].split(":")[0]
+					print time.localtime()
+					starter = "start /B %s\\start.exe --ip %s --id %s --mo baseupdate --sp %s" % (tmpstartdir, self.ip, self.id, stickpath)
+					print time.localtime()
+					print starter
 		
-			if app["autostart"] == 1:
+			if app["autostart"] == 1 and starter == False:
 				try:
 					self.statusLabel.SetLabel("start %s" % app["appname"])
 					starter = appinf.getstarter()
@@ -275,7 +397,7 @@ class MainWindow(wx.Frame):
 			except Exception, e:
 				s = False
 		
-		sys.exit()
+		sys.exit(0)
 	
 	def closeWindow(self, event):
 #		self.Destroy()
@@ -286,11 +408,17 @@ class MainWindow(wx.Frame):
 		
 class MyApp(wx.App):
 	def OnInit(self):
+		print "App onInit"
 		frame = MainWindow(None, wx.ID_ANY, 'Tunnelking updater')
 		frame.setApp(self)
 		self.SetTopWindow(frame)
 		frame.init()
 		return True
 
-app = MyApp(False, "log.txt")
+f = open("..\\log.txt", "w")
+sys.stdout = f
+sys.stderr = f
+
+app = MyApp(False)
 app.MainLoop()
+f.close()

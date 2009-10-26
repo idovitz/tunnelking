@@ -9,7 +9,6 @@ from tunnelking.Sms import *
 
 log = Log(config.logging, "auth.py")
 log.log(3, "ldapauth started for user %s" % os.environ["username"])
-log.log(3, "environ %s" % os.environ)
 
 userid = None
 
