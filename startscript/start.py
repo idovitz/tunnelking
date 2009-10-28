@@ -253,7 +253,7 @@ class SmsDialog(wx.Frame):
 class MainWindow(wx.Frame):
 	def __init__(self, parent, id, title):
 		print "Frame __init__"
-		wx.Frame.__init__(self, parent, id, title, size=(300,100), style=wx.FRAME_NO_TASKBAR | wx.CAPTION)
+		wx.Frame.__init__(self, parent, id, title, size=(300,100), style=wx.RESIZE_BORDER | wx.SYSTEM_MENU | wx.CAPTION |	 wx.CLOSE_BOX)
 		self.mainPanel = wx.Panel(self, -1)
 		
 		vBox = wx.BoxSizer(wx.VERTICAL)
@@ -352,7 +352,7 @@ class MainWindow(wx.Frame):
 		print "killed %s" % processname
 	
 	def handleApps(self):
-		starter = False
+		starter = ""
 		for app in self.apps:
 			print "handleApps app %s" % app
 			appinf = AppInfo(app["appname"])
@@ -373,26 +373,31 @@ class MainWindow(wx.Frame):
 					appinf.install(uzip)
 			else:
 				if int(myversion) < int(app["currentversion"]):
-					self.statusLabel.SetLabel("downloading new base")
-					upd = Updater(self.ip, app["appname"], app["currentversion"], self.gauge, self.label)
-					self.statusLabel.SetLabel("extracting new updater")
-					uzip = Uzip(self.gauge, self.statusLabel, self.label)
-					tmpstartdir = appinf.installStarter(uzip)
-					stickpath = "%s:\\" % sys.path[0].split(":")[0]
-					print time.localtime()
-					starter = "start /B %s\\start.exe --ip %s --id %s --mo baseupdate --sp %s" % (tmpstartdir, self.ip, self.id, stickpath)
-					print time.localtime()
-					print starter
+					ret = wx.MessageBox("Do you want to upgrade the base?", "Base upgrade", wx.YES_NO | wx.ICON_QUESTION)
+					print "%s == %s" % (ret, wx.ID_YES)
+					if ret == wx.YES:
+						self.statusLabel.SetLabel("downloading new base")
+						upd = Updater(self.ip, app["appname"], app["currentversion"], self.gauge, self.label)
+						self.statusLabel.SetLabel("extracting new updater")
+						uzip = Uzip(self.gauge, self.statusLabel, self.label)
+						tmpstartdir = appinf.installStarter(uzip)
+						stickpath = "%s:\\" % sys.path[0].split(":")[0]
+						print time.localtime()
+						startapp = app["appname"]
+						starter = "start /B %s\\start.exe --ip %s --id %s --mo baseupdate --sp %s" % (tmpstartdir, self.ip, self.id, stickpath)
+						print time.localtime()
+						print starter
 		
-			if app["autostart"] == 1 and starter == False:
+			if app["autostart"] == 1 and "start /B" not in starter:
 				try:
-					self.statusLabel.SetLabel("start %s" % app["appname"])
+					startapp = app["appname"]
 					starter = appinf.getstarter()
 				except Exception, e:
 					starter = False
 			
 		if starter:
 			try:
+				self.statusLabel.SetLabel("start %s" % startapp)
 				subprocess.call([starter], shell=True)
 			except Exception, e:
 				s = False
@@ -401,6 +406,7 @@ class MainWindow(wx.Frame):
 	
 	def closeWindow(self, event):
 #		self.Destroy()
+		self.killProcess("openvpn.exe")
 		sys.exit()
 				
 	def setApp(self, app):
