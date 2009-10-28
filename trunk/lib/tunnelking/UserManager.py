@@ -34,9 +34,9 @@ class UserManager:
 	def getUserNames(self):
 		cherrypy.response.headers['Content-Type'] = 'application/json'
 		
-		if not self.loaded:
-			self.loadUsers()
-			self.loaded = 1
+		#if not self.loaded:
+		self.loadUsers()
+		self.loaded = 1
 		
 		confid = int(cherrypy.session['confid'])
 		
