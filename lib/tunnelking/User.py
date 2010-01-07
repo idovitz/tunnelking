@@ -121,6 +121,19 @@ class User(object):
 			return True
 		except:
 			return False
+	
+	def getAppVersions(self):
+		results = {}
+		
+		try:
+			result = cherrypy.thread_data.db.querySQL("SELECT appname, version FROM userversions WHERE userid = %s" % self.data['id'])
+		except:
+			result = {}
+			
+		for item in result:
+			results[item["appname"]] = item["version"]
+			
+		return results
 			
 	def getKeyCert(self):
 		return cherrypy.session['currentconf'].ch.getUserKey(self.data['name'], cherrypy.session['currentconf'].dn, self.data['keypin'])

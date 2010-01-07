@@ -96,6 +96,14 @@ class UserManager:
 		return cjson.encode({'result':results})
 	getUserInfo.exposed = True
 	
+	def getUserAppInfo(self, id):
+		confid = int(cherrypy.session['confid'])
+		user = self.users[confid][int(id)]
+		results = {'appversions':user.getAppVersions()}
+		
+		return cjson.encode({'result':results})
+	getUserAppInfo.exposed = True
+	
 	def getUserApps(self, id):
 		result = {}
 		
