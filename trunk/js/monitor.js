@@ -1,7 +1,5 @@
 
 function loadStatus(){
-	console.log("test");
-	
 	var d = loadJSONDoc("/cm/getStatus");
 	d.addCallbacks(onLoadStatus, onFault);
 }
