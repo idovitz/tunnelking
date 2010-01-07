@@ -70,6 +70,7 @@ class User(object):
 		try:
 			cherrypy.thread_data.db.execSQL("DELETE FROM users WHERE id = %s" % self.data['id'])
 			cherrypy.thread_data.db.execSQL("DELETE FROM apps_users WHERE userid = %s" % self.data['id'])
+			cherrypy.thread_data.db.execSQL("DELETE FROM userversions WHERE userid = %s" % self.data['id'])
 			cherrypy.session['currentconf'].ch.delUserKey("%s.users.%s" % (self.data['name'], cherrypy.session['currentconf'].dn))
 			return True
 		except Exception, e:
