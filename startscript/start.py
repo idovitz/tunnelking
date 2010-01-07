@@ -29,6 +29,9 @@ class Updater:
 
 class UserInfo:
 	def get(self, ip, id):
+		self.ip = ip
+		self.id = id		
+		
 		return self.getInfo(ip, id)
 	
 	def getInfo(self, ip, id):
@@ -39,6 +42,13 @@ class UserInfo:
 		print output
 		f.close()
 		return output
+	
+	def putversions(self, versions):
+		url = "https://%s:8080/putversions?id=%s&versions=%s" % (self.ip, self.id, urllib.quote(pickle.dumps(versions)))
+		print "url"+url
+		f = urllib.urlopen(url)
+		f.close()
+		return 1
 		
 class Uzip:
 	def __init__(self, gauge, statusLabel, percentLabel):
@@ -282,7 +292,8 @@ class MainWindow(wx.Frame):
 		(options, args) = parser.parse_args()
 		print options
 		
-		self.ip = options.ip
+		#self.ip = options.ip
+		self.ip = os.environ["ROUTE_VPN_GATEWAY"]
 		self.id = options.id
 	
 		if options.mode == "updater":
@@ -294,13 +305,13 @@ class MainWindow(wx.Frame):
 			
 			keyisnotchecked = False
 			
-			userinfo = UserInfo()
+			self.userinfo = UserInfo()
 			try:
-				initdict = userinfo.get(self.ip, self.id)
+				initdict = self.userinfo.get(self.ip, self.id)
 			except:
 				try:
 					self.statusLabel.SetLabel("downloading user information 2")
-					initdict = userinfo.get(self.ip, self.id)
+					initdict = self.userinfo.get(self.ip, self.id)
 				except Exception, e:
 					print "second time failed: %s (%s)" % (type(e), e)
 					self.killProcess("openvpn.exe")
@@ -353,6 +364,8 @@ class MainWindow(wx.Frame):
 	
 	def handleApps(self):
 		starter = ""
+		versions = {}
+		
 		for app in self.apps:
 			print "handleApps app %s" % app
 			appinf = AppInfo(app["appname"])
@@ -373,7 +386,7 @@ class MainWindow(wx.Frame):
 					appinf.install(uzip)
 			else:
 				if int(myversion) < int(app["currentversion"]):
-					ret = wx.MessageBox("Do you want to upgrade the base?", "Base upgrade", wx.YES_NO | wx.ICON_QUESTION)
+					ret = wx.MessageBox("Wilt u tunnelking upgraden?", "Base upgrade", wx.YES_NO | wx.ICON_QUESTION)
 					print "%s == %s" % (ret, wx.ID_YES)
 					if ret == wx.YES:
 						self.statusLabel.SetLabel("downloading new base")
@@ -387,6 +400,8 @@ class MainWindow(wx.Frame):
 						starter = "start /B %s\\start.exe --ip %s --id %s --mo baseupdate --sp %s" % (tmpstartdir, self.ip, self.id, stickpath)
 						print time.localtime()
 						print starter
+			
+			versions[app["appname"]] = appinf.getversion()
 		
 			if app["autostart"] == 1 and "start /B" not in starter:
 				try:
@@ -394,6 +409,8 @@ class MainWindow(wx.Frame):
 					starter = appinf.getstarter()
 				except Exception, e:
 					starter = False
+		
+		self.userinfo.putversions(versions)
 			
 		if starter:
 			try:

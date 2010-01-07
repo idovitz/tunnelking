@@ -1,10 +1,14 @@
 
 function loadStatus(){
+	console.log("test");
+	
 	var d = loadJSONDoc("/cm/getStatus");
 	d.addCallbacks(onLoadStatus, onFault);
 }
 
 function onLoadStatus(res){
+	console.log(res);
+	
 	var connections = res["result"]["connections"];
 	
 	var ccount = 0;
@@ -52,6 +56,9 @@ function onLoadStatus(res){
 	}
 	
 	connectionsDiv = document.getElementById("connectionsDiv");
+	
+	console.log(html);
+	
 	connectionsDiv.innerHTML = html;
 }
 

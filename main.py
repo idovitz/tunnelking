@@ -3,6 +3,7 @@ import os, sys, cherrypy, kid, cjson, config, hashlib, pickle
 
 sys.path.append("%s/lib" % os.path.abspath(sys.path[0]))
 from tunnelking import *
+from urllib import quote, unquote
 
 log = Log(config.logging, "main.py")
 log.log(3, "main.py")
@@ -59,6 +60,22 @@ class Root(object):
 		print returnDict
 		return pickle.dumps(returnDict)
 	getuserini.exposed = True
+	
+	def putversions(self, id, versions):
+		versions = pickle.loads(unquote(versions))
+		
+		print "%s: %s" % (id, versions)
+		
+		for app in versions:
+			try:
+				sql = "INSERT INTO userversions  (userid, appname, version) VALUES(%s, '%s', %s) ON DUPLICATE KEY UPDATE version = %s" % (id, app, versions[app], versions[app])
+				print sql
+				cherrypy.thread_data.db.execSQL(sql)
+			except Exception, e:
+				print e
+				return e
+		
+	putversions.exposed = True
 
 	def checkOTPKey(self, id, key):
 		ip = cherrypy.request.remote.ip
@@ -98,11 +115,20 @@ class Root(object):
 			user = User()
 			user.load(id)
 			
-			key.sendKey(user, ip, "0.0.0.0")
+			key.sendKey(user, ip, self.getRemoteAddr(ip))
 			return pickle.dumps(True)
 		except:
 			return pickle.dumps(False)
-	newSms.exposed = True	
+	newSms.exposed = True
+	
+	def getRemoteAddr(self, ip):
+		if tr_ip == None:
+			sql = "SELECT id, rip FROM `keys` WHERE lip = '%s'" % ip
+			result = cherrypy.thread_data.db.querySQL(sql)
+			if len(result) != 0:
+				return result[0]["rip"]
+			else:
+				return False
 	
 	def test(self):
 		return "%s" % cherrypy.request.remote.ip
