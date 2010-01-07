@@ -32,6 +32,7 @@ function drawUsers(users, filter) {
 							'<img src="img/userdownload.png" onclick="userGet('+users[i]["id"]+');" />' +
 							'<img src="img/useredit.png" onclick="getUserType('+users[i]["id"]+');" />' +
 							'<img src="img/userdelete.png" onclick="userDelete('+users[i]["id"]+');" />' +
+							'<img src="img/info.png" onclick="userAppInfo('+users[i]["id"]+');" />' +
 						'</div>'+
 						'<div class="userLastLoginDiv">'+lastlogintext+'</div>' +
 					'</div>';
@@ -372,6 +373,29 @@ function onSaveApps(res){
 	var appsDiv = document.getElementById("appsDiv");
 	
 	appsDiv.style.display = "none";
+}
+
+function userAppInfo(id){
+	var d = loadJSONDoc("/um/getUserAppInfo", {id:id});
+	d.addCallbacks(onUserAppInfo, onFault);
+}
+
+function onUserAppInfo(res){
+	var appVersionsDiv = document.getElementById("appVersionsDiv");
+	MochiKit.Visual.appear("infoDiv");
+	
+	var versions = res["result"]["appversions"]
+	
+	var html = "<table><th>app</th><th>version</th>";
+	for(appname in versions){
+		html += "<tr><td>"+appname+"</td><td style='text-align: center;'>"+versions[appname]+"</td></tr>";
+	}
+	html += "</table>";
+	appVersionsDiv.innerHTML = html;
+}
+
+function closeInfo(){
+	MochiKit.Visual.fade("infoDiv");
 }
 
 function onFault(error) {

@@ -119,6 +119,16 @@ button { /* border: 1px solid blue; */
 	padding: 2px;
 }
 
+#infoDiv {
+	width: 270px;
+	height: 386px;
+	border: 1px solid #999999;
+	float: left;
+	display: none;
+	margin: 0px;
+	padding: 2px;
+}
+
 #userDiv {
 	overflow: auto;
 	height: 390px;
