@@ -13,13 +13,16 @@ function onLoadStatus(res){
 				'<div style="width: 120px; float: left; margin-left: 4px; font-weight: bold;">'+
 					"Name"+
 				'</div>'+
-				'<div style="width: 200px; float: left; margin-left: 4px; font-weight: bold;">'+
+				'<div style="width: 160px; float: left; margin-left: 4px; font-weight: bold;">'+
 					"Initial time"+
 				'</div>'+
-				'<div style="width: 200px; float: left; margin-left: 4px; font-weight: bold;">'+
+				'<div style="width: 160px; float: left; margin-left: 4px; font-weight: bold;">'+
 					"Last activity"+
 				'</div>'+
-				'<div style="width: 200px; float: left; margin-left: 4px; font-weight: bold;">'+
+				'<div style="width: 100px; float: left; margin-left: 4px; font-weight: bold;">'+
+					"up/down"+
+				'</div>'+
+				'<div style="width: 180px; float: left; margin-left: 4px; font-weight: bold;">'+
 					"VPN/Remote ip"+
 				'</div>'+
 			'</div>';
@@ -35,13 +38,16 @@ function onLoadStatus(res){
 					'<div style="float: left; width: 120px; margin-left: 4px;">'+
 						connections[i][0][0]+
 					'</div>'+
-					'<div style="float: left; width: 200px; margin-left: 4px;">'+
+					'<div style="float: left; width: 160px; margin-left: 4px;">'+
 						connections[i][0][4]+
 					'</div>'+
-					'<div style="float: left; width: 200px; margin-left: 4px;">'+
+					'<div style="float: left; width: 160px; margin-left: 4px;">'+
 						connections[i][1][3]+
 					'</div>'+
-					'<div style="float: left; width: 200px; margin-left: 4px;">'+
+					'<div style="float: left; width: 100px; margin-left: 4px;">'+
+						bitsToByteString(parseInt(connections[i][0][2]))+"/"+bitsToByteString(parseInt(connections[i][0][3]))+
+					'</div>'+
+					'<div style="float: left; width: 180px; margin-left: 4px;">'+
 						connections[i][1][0]+"/"+connections[i][1][2].split(":")[0]+
 					'</div>'+
 					'<div style="float: right;">' +
@@ -54,6 +60,10 @@ function onLoadStatus(res){
 	connectionsDiv = document.getElementById("connectionsDiv");
 	
 	connectionsDiv.innerHTML = html;
+}
+
+function bitsToByteString(bits){
+	return Math.round(bits/1024)+"kb";
 }
 
 function kill(cid) {
