@@ -63,7 +63,11 @@ function onLoadStatus(res){
 }
 
 function bitsToByteString(bits){
-	return Math.round(bits/1024)+"kb";
+	if(bits < 1000000){
+		return Math.round(bits/1024, 1)+"Kb";
+	}else{
+		return Math.round(bits/1024/1024*10)/10+"Mb";
+	}
 }
 
 function kill(cid) {
