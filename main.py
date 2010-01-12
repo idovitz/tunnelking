@@ -135,8 +135,10 @@ class Root(object):
 	test.exposed = True
 	
 	def checkConnection(self, lip, id):
+		rip = self.getRemoteAddr(lip)
+		
 		try:
-			sql = "SELECT `trusted` FROM `keys` WHERE AND userid = %s AND `expiretime` > NOW()" % (id)
+			sql = "SELECT `trusted` FROM `keys` WHERE rip = '%s' AND userid = %s AND `expiretime` > NOW()" % (rip, id)
 			result = cherrypy.thread_data.db.querySQL(sql)
 		except Exception, e:
 			sys.exit(1)
