@@ -79,6 +79,7 @@ class Root(object):
 
 	def checkOTPKey(self, id, key):
 		ip = cherrypy.request.remote.ip
+		rip = self.getRemoteAddr(ip)
 		
 		try:
 			sql = "DELETE FROM `keys` WHERE `expiretime` < NOW()"
@@ -87,7 +88,7 @@ class Root(object):
 			return e
 		
 		try:	
-			sql = "SELECT * FROM `keys` WHERE `key` = '%s' AND `expiretime` > NOW() AND lip = '%s' AND userid = %s" % (key, ip, id)
+			sql = "SELECT * FROM `keys` WHERE `key` = '%s' AND `expiretime` > NOW() AND rip = '%s' AND userid = %s" % (key, rip, id)
 			print sql
 			results = cherrypy.thread_data.db.querySQL(sql)
 		except Exception, e:
@@ -96,7 +97,7 @@ class Root(object):
 		print results
 		
 		if len(results):
-			sql = "UPDATE `keys` SET trusted = 1 WHERE `key` = '%s' AND `expiretime` > NOW() AND lip = '%s' AND userid = %s" % (key, ip, id)
+			sql = "UPDATE `keys` SET trusted = 1 WHERE `key` = '%s' AND `expiretime` > NOW() AND rip = '%s' AND userid = %s" % (key, rip, id)
 			print sql
 			cherrypy.thread_data.db.execSQL(sql)
 			
@@ -122,7 +123,7 @@ class Root(object):
 	newSms.exposed = True
 	
 	def getRemoteAddr(self, ip):
-		sql = "SELECT id, rip FROM `keys` WHERE lip = '%s'" % ip
+		sql = "SELECT userid, rip FROM `connections` WHERE lip = '%s'" % ip
 		result = cherrypy.thread_data.db.querySQL(sql)
 		if len(result) != 0:
 			return result[0]["rip"]

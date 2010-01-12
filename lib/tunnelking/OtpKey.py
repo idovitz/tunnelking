@@ -58,9 +58,6 @@ class OtpKey(object):
 			try:
 				db = DBmysql(self.config.databaseUserName, self.config.databasePassword, self.config.databaseName)
 				
-				# delete old keys for ip / user
-				# db.execSQL("DELETE FROM `keys` WHERE lip = '%s'" % (ip))
-				
 				# insert session key
 				sql = "INSERT INTO `keys` (`userid`, `key`, `expiretime`, `lip`, `rip`) VALUES(%s, '%s', DATE_ADD(NOW(), INTERVAL 12 HOUR), '%s', '%s')" % (user["id"], key, ip, tr_ip)
 				self.log.log(3, "sql: %s" % (sql))
