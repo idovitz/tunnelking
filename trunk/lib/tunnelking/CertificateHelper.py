@@ -148,6 +148,11 @@ class CertificateHelper:
 		
 		self.db.execSQL("DELETE FROM `ssl` WHERE cn = '%s' AND confid = %s" % (cn, self.confid))
 		
+	def getExpireDate(self, username, dn, pin):
+		ucn = '%s.users.%s' % (username, dn)
+		
+		return self.certs[ucn].getNotAfter()
+		
 	def getUserKey(self, username, dn, pin):
 		ucn = '%s.users.%s' % (username, dn)
 		

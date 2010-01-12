@@ -178,8 +178,11 @@
 			</div>
 		</div>
 		<div id="infoDiv">
-			<div style="width: 100%; margin: 0px 0px 10px 0px;"><b>Information for user</b></div>
-			<div id="appVersionsDiv" style="width: 100%; text-align: left;">
+			<div style="width: 100%; margin: 0px 0px 10px 0px;"><b>Information for user <i id="userInfoNameDiv"></i></b></div>
+			<div id="userExpiresDiv" style="width: 100%; text-align: left;">
+			
+			</div>
+			<div id="appVersionsDiv" style="width: 100%; text-align: left; padding: 20px;">
 				
 			</div>
 			<div style="width: 100%; text-align: right; margin: 10px 0px 10px 0px;"><button type="button" onclick="closeInfo()">close</button></div>
