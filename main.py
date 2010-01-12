@@ -136,7 +136,7 @@ class Root(object):
 	
 	def checkConnection(self, lip, id):
 		try:
-			sql = "SELECT `trusted` FROM `keys` WHERE lip = '%s' AND userid = %s AND `expiretime` > NOW()" % (lip, id)
+			sql = "SELECT `trusted` FROM `keys` WHERE AND userid = %s AND `expiretime` > NOW()" % (id)
 			result = cherrypy.thread_data.db.querySQL(sql)
 		except Exception, e:
 			sys.exit(1)
