@@ -67,7 +67,7 @@ class OtpKey(object):
 				db.execSQL(sql)
 				
 				# send key
-				msg = "sms code: %s (geldig tot %s)" % (key, tr_ip, time.strftime("%d-%m-%Y %H:%M", time.localtime(time.time()+(60*60*12))))
+				msg = "sms code: %s (geldig tot %s)" % (key, time.strftime("%d-%m-%Y %H:%M", time.localtime(time.time()+(60*60*12))))
 				sms = Sms(self.config.smsHandler, self.config.smsOptions)
 				res = sms.send(user["otpRecipient"], msg)
 				self.log.log(2, "%s sended: %s" % (key, res))
