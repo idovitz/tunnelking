@@ -122,14 +122,13 @@ class Root(object):
 	newSms.exposed = True
 	
 	def getRemoteAddr(self, ip):
-		if tr_ip == None:
-			sql = "SELECT id, rip FROM `keys` WHERE lip = '%s'" % ip
-			result = cherrypy.thread_data.db.querySQL(sql)
-			if len(result) != 0:
-				return result[0]["rip"]
-			else:
-				return False
-	
+		sql = "SELECT id, rip FROM `keys` WHERE lip = '%s'" % ip
+		result = cherrypy.thread_data.db.querySQL(sql)
+		if len(result) != 0:
+			return result[0]["rip"]
+		else:
+			return False
+
 	def test(self):
 		return "%s" % cherrypy.request.remote.ip
 	test.exposed = True
