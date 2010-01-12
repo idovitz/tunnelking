@@ -10,8 +10,6 @@ from tunnelking.OtpKey import *
 
 log = Log(config.logging, "learnaddress.py")
 log.log(3, "learnaddress started for user %s" % sys.argv[3])
-#log.log(3, "args %s" % sys.argv)
-#log.log(3, "environ %s" % os.environ)
 
 class LearnAddress:
 	def main(self):
@@ -42,7 +40,10 @@ class LearnAddress:
 					self.freeIP(ip)
 			elif learntype == "delete":
 				self.quarantaineIP(ip)
-				
+			
+			self.learn(os.environ['trusted_ip'], ip, self.userid)
+			log.log(3, "connection inserted")
+			
 		except Exception, e:
 			log.log(2, "mainTry %s: %s" % (type(e), e))
 			traceback.print_exc()
@@ -50,6 +51,18 @@ class LearnAddress:
 	
 		sys.exit(0)
 	
+	def learn(self, rip, lip, id):
+		try:
+			db = DBmysql(config.databaseUserName, config.databasePassword, config.databaseName)
+			
+			sql = "INSERT INTO connections (lip, rip, userid) VALUES('%s', '%s', %s) ON DUPLICATE KEY UPDATE rip = '%s', userid = %s" % (lip, rip, id, rip, id)
+			log.log(3, "sql: %s" % (sql))
+			
+			db.execSQL(sql)
+		except Exception, e:
+			log.log(2, "learn %s: %s" % (type(e), e))
+			sys.exit(1)
+		
 	def quarantaineIP(self, ip):
 		log.log(3, "quarantaine %s" % ip)
 		f = os.system("/usr/bin/sudo /usr/bin/qip.py add %s" % ip)
