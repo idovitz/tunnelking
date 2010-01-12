@@ -104,10 +104,17 @@ class ConfigurationManager:
 			self.configurationNames.append({"confid":res["id"], "name":res["name"]})
 			self.configurations[strid] = Configuration(res["id"], res["name"], res["dn"])
 			self.configurations[strid].load()
+			
+	def startConfigurations(self):
+		if self.configurationNames == None:
+			self.loadConfigurations()
 		
+		for conf in self.configurations:
+			self.configurations[conf].start()
+	startConfigurations.exposed = True
+	
 	def getConfigurationNames(self):
 		cherrypy.response.headers['Content-Type'] = 'application/json'
-#		print "YEAHHHHHHHHHHHHHHHHH", len(self.configurationNames)
 
 		if self.configurationNames == None:
 			self.loadConfigurations()

@@ -34,7 +34,7 @@ function drawUsers(users, filter) {
 							'<img src="img/userdelete.png" onclick="userDelete('+users[i]["id"]+');" />' +
 							'<img src="img/info.png" onclick="userAppInfo('+users[i]["id"]+');" />' +
 						'</div>'+
-						'<div class="userLastLoginDiv">'+lastlogintext+'</div>' +
+						'<div class="userLastLoginDiv">'+lastlogintext+' | expires on '+users[i]["expiredate"]+'</div>' +
 					'</div>';
 		}
 	}
@@ -381,17 +381,26 @@ function userAppInfo(id){
 }
 
 function onUserAppInfo(res){
+	var userInfoNameDiv = document.getElementById("userInfoNameDiv");
 	var appVersionsDiv = document.getElementById("appVersionsDiv");
+	var userExpiresDiv = document.getElementById("userExpiresDiv");
 	MochiKit.Visual.appear("infoDiv");
+	
+	userInfoNameDiv.innerHTML = res["result"]["name"];
 	
 	var versions = res["result"]["appversions"]
 	
-	var html = "<table><th>app</th><th>version</th>";
+	var html = "<table style='border: 1px solid;'><th>app</th><th>version</th>";
 	for(appname in versions){
 		html += "<tr><td>"+appname+"</td><td style='text-align: center;'>"+versions[appname]+"</td></tr>";
 	}
 	html += "</table>";
+	
 	appVersionsDiv.innerHTML = html;
+	
+	
+	var html = "certificate expires on "+res["result"]["expiredate"];
+	userExpiresDiv.innerHTML = html;
 }
 
 function closeInfo(){

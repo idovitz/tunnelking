@@ -8,6 +8,8 @@ from DBmysql import *
 from User import *
 from copy import copy
 from types import NoneType
+from datetime import date
+
 
 class UserManager:
 	def __init__(self):
@@ -54,7 +56,7 @@ class UserManager:
 				else:
 					lastlogin = ""
 				
-				results.append({'id':user["id"], 'name':user["name"], "lastlogin":lastlogin})
+				results.append({'id':user["id"], 'name':user["name"], "lastlogin":lastlogin, "expiredate":date.fromtimestamp(user.getExpireDate()).strftime("%d-%m-%Y")})
 		else:
 			results = False
 			
@@ -99,7 +101,7 @@ class UserManager:
 	def getUserAppInfo(self, id):
 		confid = int(cherrypy.session['confid'])
 		user = self.users[confid][int(id)]
-		results = {'appversions':user.getAppVersions()}
+		results = {'name': user["name"], 'appversions':user.getAppVersions(), "expiredate":date.fromtimestamp(user.getExpireDate()).strftime("%d-%m-%Y")}
 		
 		return cjson.encode({'result':results})
 	getUserAppInfo.exposed = True

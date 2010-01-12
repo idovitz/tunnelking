@@ -138,10 +138,15 @@ class User(object):
 	def getKeyCert(self):
 		return cherrypy.session['currentconf'].ch.getUserKey(self.data['name'], cherrypy.session['currentconf'].dn, self.data['keypin'])
 	
+	def getExpireDate(self):
+		return cherrypy.session['currentconf'].ch.getExpireDate(self.data['name'], cherrypy.session['currentconf'].dn, self.data['keypin'])
+	
 	def getPackage(self):
 		package = UserPackage(self.data["id"], self.data["name"], cherrypy.session['currentconf'].dn, self.getKeyCert(), self.apps)
 		
 		return package.filename
+	
+	
 	
 	def __str__(self):
 		str = "{"
