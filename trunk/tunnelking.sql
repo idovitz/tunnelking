@@ -1,12 +1,3 @@
--- phpMyAdmin SQL Dump
--- version 2.11.3deb1ubuntu1.2
--- http://www.phpmyadmin.net
---
--- Host: localhost
--- Generatie Tijd: 08 Sept 2009 om 15:13
--- Server versie: 5.0.51
--- PHP Versie: 5.2.4-2ubuntu5.6
-
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 
 --
@@ -37,7 +28,20 @@ CREATE TABLE IF NOT EXISTS `configurations` (
   `name` varchar(255) collate utf8_unicode_ci NOT NULL,
   `dn` varchar(255) collate utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=34 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=0 ;
+
+-- --------------------------------------------------------
+
+--
+-- Tabel structuur voor tabel `connections`
+--
+
+CREATE TABLE IF NOT EXISTS `connections` (
+  `lip` varchar(15) collate utf8_unicode_ci NOT NULL,
+  `rip` varchar(15) collate utf8_unicode_ci NOT NULL,
+  `userid` int(8) NOT NULL,
+  PRIMARY KEY  (`lip`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -50,9 +54,11 @@ CREATE TABLE IF NOT EXISTS `keys` (
   `userid` int(8) NOT NULL,
   `key` varchar(10) collate utf8_unicode_ci NOT NULL,
   `expiretime` datetime NOT NULL,
-  `ip` varchar(15) collate utf8_unicode_ci NOT NULL,
+  `lip` varchar(15) collate utf8_unicode_ci default NULL,
+  `rip` varchar(15) collate utf8_unicode_ci NOT NULL,
+  `trusted` tinyint(1) NOT NULL default '0',
   PRIMARY KEY  (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=28 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=0 ;
 
 -- --------------------------------------------------------
 
@@ -69,7 +75,7 @@ CREATE TABLE IF NOT EXISTS `options` (
   PRIMARY KEY  (`id`),
   KEY `confid` (`confid`),
   KEY `name` (`name`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1617 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=0 ;
 
 -- --------------------------------------------------------
 
@@ -102,4 +108,17 @@ CREATE TABLE IF NOT EXISTS `users` (
   `lastlogin` datetime default NULL,
   PRIMARY KEY  (`id`),
   UNIQUE KEY `confid` (`confid`,`name`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=51 ;
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=0 ;
+
+-- --------------------------------------------------------
+
+--
+-- Tabel structuur voor tabel `userversions`
+--
+
+CREATE TABLE IF NOT EXISTS `userversions` (
+  `userid` int(8) NOT NULL,
+  `appname` varchar(255) collate utf8_unicode_ci NOT NULL,
+  `version` tinyint(3) NOT NULL,
+  PRIMARY KEY  (`userid`,`appname`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
