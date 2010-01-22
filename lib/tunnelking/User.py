@@ -110,12 +110,13 @@ class User(object):
 			
 			
 			for app in apps:
-				if autostart == app:
-					auto = 1
-				else:
-					auto = 0
-				 
-				cherrypy.thread_data.db.execSQL("INSERT INTO apps_users (appname, userid, autostart) VALUES('%s', %s, %s)" % (app, self.data['id'], auto))
+				if app != "":
+					if autostart == app:
+						auto = 1
+					else:
+						auto = 0
+				
+					cherrypy.thread_data.db.execSQL("INSERT INTO apps_users (appname, userid, autostart) VALUES('%s', %s, %s)" % (app, self.data['id'], auto))
 				
 			self.loadApps()
 			return True
