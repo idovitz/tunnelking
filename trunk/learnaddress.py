@@ -107,7 +107,7 @@ class LearnAddress:
 			sys.exit(1)
 			
 		if len(result) != 0:
-			log.log(3, "res: %s" % (result))
+			log.log(3, "res: %s" % (str(result)))
 			if result[0]['trusted'] == 1:
 				return 1
 			else:
