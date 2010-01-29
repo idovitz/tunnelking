@@ -98,7 +98,7 @@ class LearnAddress:
 		try:
 			db = DBmysql(config.databaseUserName, config.databasePassword, config.databaseName)
 			
-			sql = "SELECT `trusted` FROM `keys` WHERE rip = '%s' AND userid = %s AND `expiretime` > NOW()" % (rip, self.userid)
+			sql = "SELECT `trusted` FROM `keys` WHERE rip = '%s' AND userid = %s AND `expiretime` > NOW() ORDER BY expiretime DESC LIMIT 1" % (rip, self.userid)
 			log.log(3, "sql: %s" % (sql))
 			
 			result = db.querySQL(sql)
