@@ -138,7 +138,7 @@ class Root(object):
 		rip = self.getRemoteAddr(lip)
 		
 		try:
-			sql = "SELECT `trusted` FROM `keys` WHERE rip = '%s' AND userid = %s AND `expiretime` > NOW()" % (rip, id)
+			sql = "SELECT `trusted` FROM `keys` WHERE rip = '%s' AND userid = %s AND `expiretime` > NOW() ORDER BY expiretime DESC LIMIT 1" % (rip, id)
 			result = cherrypy.thread_data.db.querySQL(sql)
 		except Exception, e:
 			sys.exit(1)
