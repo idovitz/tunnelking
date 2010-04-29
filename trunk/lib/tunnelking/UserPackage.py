@@ -1,12 +1,13 @@
 
-import zipfile, time, cherrypy, config, os
+import zipfile, time, cherrypy, config, os #@UnresolvedImport
 
 class UserPackage:
-	def __init__(self, userid, username, dn, keycert, apps):
+	def __init__(self, userid, username, dn, keycert, apps, testdriver):
 		self.filename = "tmp/%s.%s.zip" % (username, dn)
 		self.username = username
 		self.dn = dn
 		self.userid = userid
+		self.testdriver = testdriver
 		
 		# open zip
 		self.zipFile = zipfile.ZipFile(self.filename, "w")
@@ -33,12 +34,12 @@ class UserPackage:
 	
 	def userConfigFile(self):
 		tlsremote = "\"/CN=server.%s/O=%s/OU=%s/C=%s/ST=%s/L=%s\"" % (
-																		cherrypy.session['currentconf']["domain"],
-																		cherrypy.session['currentconf']["o"],
-																		cherrypy.session['currentconf']["ou"],
-																		cherrypy.session['currentconf']["c"],
-																		cherrypy.session['currentconf']["st"],
-																		cherrypy.session['currentconf']["l"]
+																		cherrypy.session['currentconf']["domain"], #@UndefinedVariable
+																		cherrypy.session['currentconf']["o"], #@UndefinedVariable
+																		cherrypy.session['currentconf']["ou"], #@UndefinedVariable
+																		cherrypy.session['currentconf']["c"], #@UndefinedVariable
+																		cherrypy.session['currentconf']["st"], #@UndefinedVariable
+																		cherrypy.session['currentconf']["l"] #@UndefinedVariable
 																		)
 		
 		server = cherrypy.session['currentconf'].options["server"][0]
@@ -61,7 +62,7 @@ class UserPackage:
 				   "cert": ["%s.users.%s.cert" % (self.username, cherrypy.session['currentconf'].dn)],
 				   "key": ["%s.users.%s.key" % (self.username, cherrypy.session['currentconf'].dn)],
 				   "tls-auth": ["ta.%s.key" % cherrypy.session['currentconf'].dn, "1"],
-				   "remote": [cherrypy.session['currentconf']["remoteip"]],
+				   "remote": [cherrypy.session['currentconf']["remoteip"]], #@UndefinedVariable
 				   "tls-remote": [tlsremote.replace(" ", "_")],
 				   "pull": [],
 				   "auth-user-pass": [],
@@ -98,7 +99,11 @@ class UserPackage:
 	def appDirs(self, apps):
 		# Selected apps
 		for app in apps:
-			version = self.getAppInfo(app)["VERSION_PRODUCTION"]
+			appinfo = self.getAppInfo(app)
+			if self.testdriver == 1 and os.path.exists("%sapps/%s/%s/" % (config.basemap, app, appinfo["VERSION_TEST"])):
+				version = appinfo["VERSION_TEST"]
+			else:
+				version = appinfo["VERSION_PRODUCTION"]
 			
 			for r, d, f in os.walk("%sapps/%s/%s" % (config.basemap, app, version)):
 				for file in f:
@@ -108,7 +113,13 @@ class UserPackage:
 						self.writeFile(filepath, name)
 		
 		# base files
-		version = self.getAppInfo("__base__")["VERSION_PRODUCTION"]				
+		appinfo = self.getAppInfo("__base__")
+		if self.testdriver == 1 and os.path.exists("%sapps/__base__/%s/" % (config.basemap, appinfo["VERSION_TEST"])):
+			version = appinfo["VERSION_TEST"]
+		else:
+			version = appinfo["VERSION_PRODUCTION"]
+			
+					
 		for r, d, f in os.walk("%sapps/__base__/%s" % (config.basemap, version)):
 			app = "__base__"
 			for file in f:

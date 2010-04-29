@@ -3,9 +3,9 @@
 # Copyright (C) 2009  IJSSELLAND ZIEKENHUIS
 ##################################################
 
-import cherrypy, cjson, config, operator, os
-from DBmysql import *
-from User import *
+import cherrypy, cjson, config, operator, os #@UnresolvedImport @UnusedImport
+from DBmysql import * #@UnusedWildImport
+from User import * #@UnusedWildImport
 from copy import copy
 from types import NoneType
 from datetime import date
@@ -93,7 +93,7 @@ class UserManager:
 	def getUserInfo(self, id):
 		confid = int(cherrypy.session['confid'])
 		user = self.users[confid][int(id)]
-		results = {'id':user["id"], 'name':user["name"], 'otpRecipient':user["otpRecipient"], 'keypin':(user["keypin"] != "")}
+		results = {'id':user["id"], 'name':user["name"], 'otpRecipient':user["otpRecipient"], 'keypin':(user["keypin"] != ""), 'testdriver':user["testdriver"]}
 		
 		return cjson.encode({'result':results})
 	getUserInfo.exposed = True
@@ -115,7 +115,7 @@ class UserManager:
 		result['userapps'] = user.apps
 		
 		# get all apps
-		for root, dirs, files in os.walk("%s/apps" % config.basemap):
+		for root, dirs, files in os.walk("%s/apps" % config.basemap): #@UnusedVariable
 			result['availapps'] = dirs
 			break
 		
