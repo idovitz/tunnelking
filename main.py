@@ -33,16 +33,27 @@ class Root(object):
 		return t.serialize(output="html")
 	users.exposed = True
 	
+	def key(self, userid):
+		t = kid.Template('kid/key.xml')
+		t.userid = userid
+		return t.serialize(output="html")
+	key.exposed = True
+	
 	def getuserini(self, id):
 		lip = cherrypy.request.remote.ip
 		
-		sql = "SELECT us.id, app.appname, app.autostart FROM users AS us JOIN apps_users AS app ON app.userid = us.id WHERE us.id = %s" % id
+		sql = "SELECT us.testdriver FROM users AS us WHERE us.id = %s" % id
+		results = cherrypy.thread_data.db.querySQL(sql)
+		testdriver = list(results)[0]["testdriver"]
+		
+		sql = "SELECT us.id, us.testdriver, app.appname, app.autostart FROM users AS us JOIN apps_users AS app ON app.userid = us.id WHERE us.id = %s" % id
 		results = cherrypy.thread_data.db.querySQL(sql)
 		results = list(results)
 		
 		results.append({"appname":"__base__", "autostart":0})
 		
 		for app in results:
+			print app
 			f = open("%s/apps/%s/__info__" % (sys.path[0], app["appname"]), "r")
 			lines = f.readlines()
 			f.close()
@@ -52,7 +63,10 @@ class Root(object):
 				spline = line.strip().split("=")
 				params[spline[0]] = spline[1]
 			
-			app["currentversion"] = params["VERSION_PRODUCTION"]
+			if os.path.exists("%s/apps/%s/%s.tar.bz2" % (sys.path[0], app["appname"], params["VERSION_TEST"])) and testdriver == 1:
+				app["currentversion"] = params["VERSION_TEST"]
+			else:
+				app["currentversion"] = params["VERSION_PRODUCTION"]
 		
 		returnDict = {}
 		returnDict["apps"] = list(results)

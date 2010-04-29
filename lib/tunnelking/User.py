@@ -4,7 +4,7 @@
 ##################################################
 
 import cherrypy
-from DBmysql import *
+from DBmysql import * #@UnusedWildImport
 from UserPackage import UserPackage
 
 class User(object):
@@ -23,11 +23,11 @@ class User(object):
 			formdata["password"] = "niks"
 			
 		try:
-			cherrypy.thread_data.db.execSQL("INSERT INTO users (confid, name, keypin, password, otpRecipient) VALUES(%s, '%s', '%s', SHA1('%s'), '%s')" % (confid, formdata['name'], formdata['keypin'], formdata["password"], formdata["otpRecipient"]))
+			cherrypy.thread_data.db.execSQL("INSERT INTO users (confid, name, keypin, password, otpRecipient, testdriver) VALUES(%s, '%s', '%s', SHA1('%s'), '%s', %s)" % (confid, formdata['name'], formdata['keypin'], formdata["password"], formdata["otpRecipient"], formdata["testdriver"]))
 			self.data['id'] = cherrypy.thread_data.db.cursor.lastrowid
 			self.load(self.data['id'])
 			
-			cherrypy.session['currentconf'].ch.createUserKey("%s.users.%s" % (formdata['name'], cherrypy.session['currentconf'].dn))
+			cherrypy.session['currentconf'].ch.createUserKey("%s.users.%s" % (formdata['name'], cherrypy.session['currentconf'].dn)) #@UndefinedVariable
 			return True
 		except Exception, e:
 			print type(e), e
@@ -48,6 +48,8 @@ class User(object):
 			else:
 				passSql = "password = SHA1('%s')," % formdata['password']
 			
+			tdSql = "testdriver = %s," % formdata['testdriver']
+			
 			if formdata.has_key("otpRecipient"):
 				if formdata["otpRecipient"] != "":
 					otpSql = "otpRecipient = '%s'" % formdata["otpRecipient"]
@@ -57,7 +59,7 @@ class User(object):
 				otpSql = "otpRecipient = ''"
 				
 			
-			sql = "UPDATE users SET %s %s %s WHERE id = %s" % (keyPinSql, passSql, otpSql, self.data['id'])
+			sql = "UPDATE users SET %s %s %s %s WHERE id = %s" % (keyPinSql, passSql, tdSql, otpSql, self.data['id'])
 			cherrypy.thread_data.db.execSQL(sql)
 			self.load(self.data['id'])
 			return True
@@ -71,7 +73,7 @@ class User(object):
 			cherrypy.thread_data.db.execSQL("DELETE FROM users WHERE id = %s" % self.data['id'])
 			cherrypy.thread_data.db.execSQL("DELETE FROM apps_users WHERE userid = %s" % self.data['id'])
 			cherrypy.thread_data.db.execSQL("DELETE FROM userversions WHERE userid = %s" % self.data['id'])
-			cherrypy.session['currentconf'].ch.delUserKey("%s.users.%s" % (self.data['name'], cherrypy.session['currentconf'].dn))
+			cherrypy.session['currentconf'].ch.delUserKey("%s.users.%s" % (self.data['name'], cherrypy.session['currentconf'].dn)) #@UndefinedVariable
 			return True
 		except Exception, e:
 			print e
@@ -137,13 +139,13 @@ class User(object):
 		return results
 			
 	def getKeyCert(self):
-		return cherrypy.session['currentconf'].ch.getUserKey(self.data['name'], cherrypy.session['currentconf'].dn, self.data['keypin'])
+		return cherrypy.session['currentconf'].ch.getUserKey(self.data['name'], cherrypy.session['currentconf'].dn, self.data['keypin']) #@UndefinedVariable
 	
 	def getExpireDate(self):
-		return cherrypy.session['currentconf'].ch.getExpireDate(self.data['name'], cherrypy.session['currentconf'].dn, self.data['keypin'])
+		return cherrypy.session['currentconf'].ch.getExpireDate(self.data['name'], cherrypy.session['currentconf'].dn, self.data['keypin']) #@UndefinedVariable
 	
 	def getPackage(self):
-		package = UserPackage(self.data["id"], self.data["name"], cherrypy.session['currentconf'].dn, self.getKeyCert(), self.apps)
+		package = UserPackage(self.data["id"], self.data["name"], cherrypy.session['currentconf'].dn, self.getKeyCert(), self.apps, self.data["testdriver"])
 		
 		return package.filename
 	

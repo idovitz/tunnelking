@@ -106,6 +106,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `password` varchar(255) collate utf8_unicode_ci default NULL,
   `otpRecipient` varchar(255) collate utf8_unicode_ci default NULL,
   `lastlogin` datetime default NULL,
+  `testdriver` tinyint(1) NOT NULL default '0',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `confid` (`confid`,`name`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=0 ;

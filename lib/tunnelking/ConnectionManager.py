@@ -23,10 +23,10 @@ class ConnectionManager:
 			if k >= 4 and l[0:7] != "ROUTING" and l[0:7] != "Virtual":
 				if l[0:6] == "GLOBAL":
 					break
-               
+				
 				l = l.rstrip()
 				la = l.split(",")
-              
+				
 				if status.has_key(la[1]+"_"+la[2]) == True:
 					status[la[1]+"_"+la[2]].append(la)
 				else:

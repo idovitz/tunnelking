@@ -39,6 +39,10 @@
 						<td><input type="password" id="userAddPass2" /></td>
 					</tr>
 					<tr>
+						<td>testdriver</td>
+						<td><input id="userLocalAddTestDriverCheck" type="checkbox" /></td>
+					</tr>
+					<tr>
 						<td>pin on key?</td>
 						<td><input id="userLocalAddPinCheck" type="checkbox" onclick="showTR(['pincodeLocalTR', 'pincodeLocalTR2'], 'userLocalAddPinCheck');" /></td>
 					</tr>
@@ -81,6 +85,10 @@
 						<td><select size="6" id="userSelect" style="width: 100px;"></select></td>
 					</tr>
 					<tr>
+						<td>testdriver</td>
+						<td><input id="userAddTestDriverCheck" type="checkbox" /></td>
+					</tr>
+					<tr>
 						<td>pin on key?</td>
 						<td><input id="userAddPinCheck" type="checkbox" onclick="showTR(['pincodeTR', 'pincodeTR2'], 'userAddPinCheck');" /></td>
 					</tr>
@@ -117,6 +125,10 @@
 					<tr>
 						<td>username</td>
 						<td id="userEditName"></td>
+					</tr>
+					<tr>
+						<td>testdriver</td>
+						<td><input id="userLocalEditTestDriverCheck" type="checkbox" /></td>
 					</tr>
 					<tr id="passwordTR">
 						<td>password</td>

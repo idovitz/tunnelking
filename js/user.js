@@ -123,6 +123,8 @@ function onGetUserInfo(res) {
 	
 	document.getElementById("userEditName").innerHTML = "<b>"+userArr["name"]+"</b>";
 	
+	document.getElementById("userLocalEditTestDriverCheck").checked = (parseInt(userArr["testdriver"]) == 1);
+	
 	document.getElementById("userLocalEditPinCheck").checked = userArr["keypin"];
 	showTR(['pincodeEditTR', 'pincodeEditTR2'], 'userLocalEditPinCheck');
 	
@@ -150,6 +152,14 @@ function saveUser() {
 	var editDiv = document.getElementById("editDiv");
 	
 	var formdata = {};
+	
+	if(document.getElementById("userLocalEditTestDriverCheck").checked)
+	{
+		formdata['testdriver'] = 1;
+	}else{
+		formdata['testdriver'] = 0;
+	}
+	
 	if(document.getElementById("userLocalEditPinCheck").checked)
 		formdata['keypin'] = document.getElementById("userEditKeyPin").value;
 	
@@ -176,20 +186,38 @@ function onSaveUser() {
 function addUser(formname) {
 	if(formname == "addForm"){
 		var addDiv = document.getElementById("addDiv");
+		
+		if(document.getElementById("userLocalAddTestDriverCheck").checked)
+		{
+			var testdriverValue = 1;
+		}else{
+			var testdriverValue = 0;
+		}
+		
 		var formdata = {
 			name: document.getElementById("userAddName").value,
 			keypin: document.getElementById("userAddKeyPin").value,
 			password: document.getElementById("userAddPass").value,
-			otpRecipient: document.getElementById("otpLocalRecipient").value
+			otpRecipient: document.getElementById("otpLocalRecipient").value,
+			testdriver: testdriverValue
 		}
 		
 		var checkFields = ["userAddKeyPin", "userAddPass"];
 	}else{
 		var addDiv = document.getElementById("addLdapDiv");
+		
+		if(document.getElementById("userAddTestDriverCheck").checked)
+		{
+			var testdriverValue = 1;
+		}else{
+			var testdriverValue = 0;
+		}
+		
 		var formdata = {
 			name: document.getElementById("userSelect").value,
 			keypin: document.getElementById("userAddLdapKeyPin").value,
-			otpRecipient: document.getElementById("otpLdapRecipient").value
+			otpRecipient: document.getElementById("otpLdapRecipient").value,
+			testdriver: testdriverValue
 		}
 		var checkFields = ["userAddLdapKeyPin"];
 	}
@@ -323,8 +351,10 @@ function addApp() {
 	var usel = document.getElementById("userApps");
 	
 	if(asel.value != undefined){
-		if(!inOptions(usel.options, asel.value)) {
-			appendChildNodes(usel, OPTION(null, asel.value));
+		var avalue = asel.options[asel.selectedIndex].value;
+				
+		if(!inOptions(usel.options, avalue)) {
+			appendChildNodes(usel, OPTION(null, avalue));
 		}
 		
 		for(var i=0; i<asel.options.length; i++){
@@ -355,14 +385,12 @@ function delApp() {
 }
 
 function saveApps() {
+	
 	var usel = document.getElementById("userApps");
 	var apps = {'names':[]};
 	
-	for(i in usel.options){
-		if(usel.options[i] != undefined){
-			if(usel.options[i].text != undefined)
-				apps['names'].push(usel.options[i].text);
-		}
+	for(var i=0; i<usel.options.length; i++){
+		apps['names'].push(usel.options[i].text);
 	}
 	
 	var d = loadJSONDoc("/um/saveUserApps", {id:editUserId, apps:serializeJSON(apps), autostart:autostart});
