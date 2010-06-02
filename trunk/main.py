@@ -70,7 +70,10 @@ class Root(object):
 		
 		returnDict = {}
 		returnDict["apps"] = list(results)
-		returnDict["getSms"] = self.checkConnection(lip, id)
+		if self.checkOTP(id):
+			returnDict["getSms"] = self.checkConnection(lip, id)
+		else:
+			returnDict["getSms"] = False
 		print returnDict
 		return pickle.dumps(returnDict)
 	getuserini.exposed = True
@@ -164,6 +167,18 @@ class Root(object):
 				return True
 		else:
 			return True
+	
+	def checkOTP(self, id):
+		try:
+			sql = "SELECT id, otpRecipient FROM users WHERE id = %s" % (id)
+			result = cherrypy.thread_data.db.querySQL(sql)
+		except Exception, e:
+			sys.exit(1)
+		
+		if result[0]["otpRecipient"] != "":
+			return True
+		else:
+			return False
 	
 	
 	
