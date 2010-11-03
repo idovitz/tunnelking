@@ -1,6 +1,7 @@
 var editUserId = 0;
 var userArr;
 var autostart = "";
+var depends;
 
 function getUsers() {
 	var d = loadJSONDoc("/um/getUserNames");
@@ -227,8 +228,11 @@ function addUser(formname) {
 		document.getElementById(formname).reset();
 		document.getElementById("userSelect").innerHTML = "";
 		
-		var d = loadJSONDoc("/um/addUser", {formdata:serializeJSON(formdata)});
-		d.addCallbacks(onAddUser, onFault);
+		if(formdata.name != "")
+		{
+			var d = loadJSONDoc("/um/addUser", {formdata:serializeJSON(formdata)});
+			d.addCallbacks(onAddUser, onFault);
+		}
 	}
 }
 
@@ -296,6 +300,7 @@ function onGetUserApps(res) {
 	var asel = document.getElementById("availApps");
 	var usel = document.getElementById("userApps");
 	autostart = res["result"]["autostart"];
+	depends = res["result"]["depends"];
 	
 	asel.innerHTML = "";
 	var apps = res["result"]["availapps"];
@@ -363,22 +368,52 @@ function addApp() {
 				break;
 			}
 		}
+		
+		if(depends[avalue]){
+			if(!inOptions(usel.options, depends[avalue])) {
+				appendChildNodes(usel, OPTION(null, depends[avalue]));
+				
+				for(var i=0; i<asel.options.length; i++){
+					if(asel.options[i].value == depends[avalue]){
+						asel.remove(i);
+						break;
+					}
+				}
+			}
+		}
 	}
 }
 
 function delApp() {
 	var asel = document.getElementById("availApps");
 	var usel = document.getElementById("userApps");
+	var uvalue = usel.value;
 	
-	if(usel.value != undefined ){
-		if(!inOptions(asel.options, usel.value)) {
-			appendChildNodes(asel, OPTION(null, usel.value));
+	if(uvalue != undefined ){
+		if(!inOptions(asel.options, uvalue)) {
+			appendChildNodes(asel, OPTION(null, uvalue));
 		}
 		
 		for(var i=0; i<usel.options.length; i++){
-			if(usel.options[i].value == usel.value){
+			if(usel.options[i].value == uvalue){
 				usel.remove(i);
 				break;
+			}
+		}
+	}
+	
+	for(key in depends){
+		if(depends[key] == uvalue){
+			for(var i=0; i<usel.options.length; i++){
+				if(usel.options[i].value == key){
+					usel.remove(i);
+					
+					if(!inOptions(asel.options, key)) {
+						appendChildNodes(asel, OPTION(null, key));
+					}
+					
+					break;
+				}
 			}
 		}
 	}
