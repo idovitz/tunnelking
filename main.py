@@ -53,7 +53,7 @@ class Root(object):
 		results.append({"appname":"__base__", "autostart":0})
 		
 		for app in results:
-			app["currentversion"] = AppHelper.AppHelper.getCurrentVersion(app["appname"], testdriver)
+			app["currentversion"] = AppHelper.getCurrentVersion(app["appname"], testdriver)
 		
 		returnDict = {}
 		returnDict["apps"] = list(results)
