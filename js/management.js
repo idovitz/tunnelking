@@ -91,7 +91,7 @@ function onLoadPushOptions(res){
 	winsCount = 1;
 	
 	for(var i=0; i<res["result"].length; i++){
-		if(res["result"][i].search("route") != -1){
+		if(res["result"][i].search("route") != -1 && res["result"][i].search("route-") == -1){
 			document.getElementById("routesField").value += res["result"][i].replace("route ", "")+"\n";
 		}else if(res["result"][i].search("dhcp-option DNS") != -1 && dnsCount < 3){
 			document.getElementById("dnsField"+dnsCount).value = res["result"][i].replace("dhcp-option DNS ", "");

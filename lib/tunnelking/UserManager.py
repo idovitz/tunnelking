@@ -9,6 +9,7 @@ from User import * #@UnusedWildImport
 from copy import copy
 from types import NoneType
 from datetime import date
+from tunnelking.AppHelper import AppHelper
 
 
 class UserManager:
@@ -115,14 +116,14 @@ class UserManager:
 		result['userapps'] = user.apps
 		
 		# get all apps
-		for root, dirs, files in os.walk("%s/apps" % config.basemap): #@UnusedVariable
-			result['availapps'] = dirs
-			break
+		result['availapps'] = AppHelper.getAllAppNames()
 		
 		availapps = copy(result['availapps'])
 		for app in availapps:
-			if app in result['userapps'] or app.find("__") != -1 or app.find(".") != -1:
+			if app in result['userapps']:
 				result['availapps'].remove(app)
+		
+		result["depends"] = AppHelper.getDependencies()		
 				
 		result["autostart"] = user.autostart
 		

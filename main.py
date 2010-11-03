@@ -53,20 +53,7 @@ class Root(object):
 		results.append({"appname":"__base__", "autostart":0})
 		
 		for app in results:
-			print app
-			f = open("%s/apps/%s/__info__" % (sys.path[0], app["appname"]), "r")
-			lines = f.readlines()
-			f.close()
-			
-			params = {}
-			for line in lines:
-				spline = line.strip().split("=")
-				params[spline[0]] = spline[1]
-			
-			if os.path.exists("%s/apps/%s/%s.tar.bz2" % (sys.path[0], app["appname"], params["VERSION_TEST"])) and testdriver == 1:
-				app["currentversion"] = params["VERSION_TEST"]
-			else:
-				app["currentversion"] = params["VERSION_PRODUCTION"]
+			app["currentversion"] = AppHelper.AppHelper.getCurrentVersion(app["appname"], testdriver)
 		
 		returnDict = {}
 		returnDict["apps"] = list(results)

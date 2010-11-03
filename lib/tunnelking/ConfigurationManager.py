@@ -1,9 +1,10 @@
 
-import os, sys, cherrypy, cjson, config, time, copy, types
+import os, sys, cherrypy, cjson, config, time, types
 from Configuration import *
 from User import *
 from UserManager import *
 from DBmysql import *
+from copy import copy
 
 class ConfigurationManager:
 	def __init__(self):
@@ -33,7 +34,7 @@ class ConfigurationManager:
 			newConf = Configuration(0, formdata["configname"], "")
 			newConf.new(formdata)
 			
-			self.configurations[newConf.id] = copy.copy(newConf)
+			self.configurations[newConf.id] = copy(newConf)
 			self.setConfiguration(newConf.id)
 			result = True
 		else:
