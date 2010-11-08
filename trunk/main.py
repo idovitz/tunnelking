@@ -33,11 +33,11 @@ class Root(object):
 		return t.serialize(output="html")
 	users.exposed = True
 	
-	def key(self, userid):
-		t = kid.Template('kid/key.xml')
+	def smscheck(self, userid):
+		t = kid.Template('kid/smscheck.xml')
 		t.userid = userid
 		return t.serialize(output="html")
-	key.exposed = True
+	smscheck.exposed = True
 	
 	def getuserini(self, id):
 		lip = cherrypy.request.remote.ip
@@ -105,7 +105,7 @@ class Root(object):
 			print sql
 			cherrypy.thread_data.db.execSQL(sql)
 			
-			os.system("/usr/bin/sudo /usr/bin/qip.py delete %s" % ip)
+			os.system("/usr/bin/sudo /usr/bin/qip.py add %s %s" % (ip, id))
 			return pickle.dumps(True)
 		else:
 			return pickle.dumps(False)

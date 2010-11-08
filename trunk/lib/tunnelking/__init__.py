@@ -1,5 +1,5 @@
 
-__all__ = ["ConfigurationManager", "ConnectionManager", "Configuration", "DBmysql", "UserManager", "User", "CertificateHelper", "UserPackage", "Log", "LdapHandler", "Sms", "OtpKey", "AppHelper"]
+__all__ = ["ConfigurationManager", "ConnectionManager", "Configuration", "DBmysql", "UserManager", "User", "CertificateHelper", "UserPackage", "Log", "LdapHandler", "Sms", "OtpKey", "AppHelper", "IptablesHelper"]
 
 from ConfigurationManager import ConfigurationManager
 from Configuration import Configuration
@@ -14,3 +14,4 @@ from LdapHandler import LdapHandler
 from Sms import Sms
 from OtpKey import *
 from AppHelper import *
+from IptablesHelper import *
