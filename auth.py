@@ -130,12 +130,21 @@ def checkLdap(domain):
 		if os.environ["password"] != "":
 			try:
 				con = ldap.open(ip)
+				con.set_option(ldap.OPT_REFERRALS, 0)
+				con.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_NEVER)
+				con.start_tls_s()
+				
+				if dn.count('.') > 1:
+					ldapDN = dn[dn.find(".")+1:]
+				else:
+					ldapDN = dn
+				
 				log.log(3, "check user %s" % os.environ["username"])
-				con.simple_bind_s("%s@%s" % (os.environ["username"], dn), os.environ["password"])
+				con.simple_bind_s("%s@%s" % (os.environ["username"], ldapDN), os.environ["password"])
 				log.log(3, "bind succesfull user %s" % os.environ["username"])
 				return True
-			except ldap.INVALID_CREDENTIALS:
-				log.log(2, "ldap logon failed")
+			except ldap.INVALID_CREDENTIALS, e:
+				log.log(2, "ldap logon failed: %s: %s" % (type(e), e))
 				return False
 			except Exception, e:
 				log.log(2, "%s: %s" % (type(e), e))

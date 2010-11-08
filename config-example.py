@@ -22,3 +22,5 @@ smsOptions = {
 databaseUserName = "tunnelking"
 databasePassword = "dsfdfsfgsdfdsfd"
 databaseName = "tunnelking"
+
+iptPath= "/sbin/iptables"
