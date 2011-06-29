@@ -17,28 +17,32 @@ class UserManager:
 		self.users = {}
 		self.loaded = 0
 		
-	def loadUsers(self):
+	def loadUsers(self, sort="name"):
 		self.users = {}
 		
 		# get all users
-		results = cherrypy.thread_data.db.querySQL("SELECT id, confid FROM users")
+		results = cherrypy.thread_data.db.querySQL("SELECT id, confid FROM users ORDER BY confid, %s" % sort)
 		
 		# load users in dict
+		i = 0
 		for res in results:
 			if not self.users.has_key(res["confid"]):
 				self.users[res["confid"]] = {}
 			
 			self.users[res["confid"]][res['id']] = User()
 			self.users[res["confid"]][res['id']].load(res['id'])
+			self.users[res["confid"]][res['id']]["sort"] = i
+			
+			i+=1
 	
 	def getUsers(self):
 		return self.users
 		
-	def getUserNames(self):
+	def getUserNames(self, sort):
 		cherrypy.response.headers['Content-Type'] = 'application/json'
 		
 		#if not self.loaded:
-		self.loadUsers()
+		self.loadUsers(sort)
 		self.loaded = 1
 		
 		confid = int(cherrypy.session['confid'])
@@ -47,11 +51,9 @@ class UserManager:
 			results = []
 			
 			users = self.users[confid].values()
-			users.sort(key=lambda obj: obj["name"])
+			users.sort(key=lambda obj: obj["sort"])
 			
 			for user in users:
-				print type(user["lastlogin"])
-				
 				if type(user["lastlogin"]) != NoneType:
 					lastlogin = user["lastlogin"].strftime("%d-%m-%Y %H:%M")
 				else:

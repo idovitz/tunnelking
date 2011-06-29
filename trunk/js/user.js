@@ -3,8 +3,8 @@ var userArr;
 var autostart = "";
 var depends;
 
-function getUsers() {
-	var d = loadJSONDoc("/um/getUserNames");
+function getUsers(sort) {
+	var d = loadJSONDoc("/um/getUserNames", {sort:sort});
 	d.addCallbacks(onGetUserNames, onFault);
 }
 
