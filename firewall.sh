@@ -27,6 +27,4 @@ iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
 #iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 
-iptables -t nat -A POSTROUTING -o eth0 --src 192.168.237.0/24 --dst 172.16.0.0/24 -j SNAT --to-source 172.16.0.5 
-
 echo 1 > /proc/sys/net/ipv4/ip_forward
